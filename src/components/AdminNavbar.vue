@@ -13,6 +13,9 @@
               exact-active-class="!border-blue-500 !text-gray-900"
             >
               Surat Jalan
+              <span v-if="activeTasks > 0" class="ml-2 inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                {{ activeTasks }} Aktif
+              </span>
             </router-link>
             <router-link
               to="/admin/users"
@@ -23,8 +26,14 @@
             </router-link>
           </div>
         </div>
-        <div class="flex items-center">
-          <button @click="handleLogout" class="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+        <div class="flex items-center gap-4">
+          <!-- Mobile notification badge indicator -->
+          <div class="sm:hidden flex items-center">
+             <span v-if="activeTasks > 0" class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                {{ activeTasks }} Tugas
+              </span>
+          </div>
+          <button @click="handleLogout" class="text-sm font-medium text-gray-500 hover:text-gray-700">
             Logout
           </button>
         </div>
@@ -34,13 +43,53 @@
 </template>
 
 <script setup>
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { supabase } from '@/lib/supabase'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const activeTasks = ref(0)
+let subscription = null
+
+const fetchCounts = async () => {
+  try {
+    const { count, error } = await supabase
+      .from('surat_jalan')
+      .select('*', { count: 'exact', head: true })
+      .in('status', ['DRAFT', 'MENUNGGU ADMIN', 'MENUNGGU SUPIR', 'DITERIMA SUPIR', 'DALAM PENGIRIMAN'])
+      
+    if (!error && count !== null) {
+      activeTasks.value = count
+    }
+  } catch (err) {
+    console.error('Error fetching count:', err)
+  }
+}
+
+const setupRealtime = () => {
+  subscription = supabase
+    .channel('public:surat_jalan')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'surat_jalan' }, () => {
+      fetchCounts()
+    })
+    .subscribe()
+}
+
+onMounted(() => {
+  fetchCounts()
+  setupRealtime()
+})
+
+onUnmounted(() => {
+  if (subscription) {
+    supabase.removeChannel(subscription)
+  }
+})
 
 const handleLogout = async () => {
+  if (subscription) supabase.removeChannel(subscription)
   await authStore.signOut()
   router.push('/login')
 }

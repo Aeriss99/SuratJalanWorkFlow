@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen bg-gray-50 pb-12">
     <AdminNavbar />
     
     <main class="max-w-3xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -20,7 +20,7 @@
                   class="flex-1 min-w-0 block w-full px-3 py-2 rounded-md border border-gray-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   placeholder="Contoh: SJ-2023-001" />
                 <button type="button" @click="generateNomor"
-                  class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700">
+                  class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 transition-colors">
                   Generate
                 </button>
               </div>
@@ -46,8 +46,8 @@
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700">Tugaskan Supir (Opsional)</label>
-              <select v-model="form.supir_id"
+              <label class="block text-sm font-medium text-gray-700">Tugaskan Supir</label>
+              <select v-model="form.supir_id" required
                 class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                 <option :value="null">-- Pilih Supir --</option>
                 <option v-for="supir in supirList" :key="supir.id" :value="supir.id">
@@ -56,10 +56,22 @@
               </select>
             </div>
 
+            <div class="border-t border-gray-200 pt-6">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Tanda Tangan Admin</label>
+              <p class="text-xs text-gray-500 mb-3">Tanda tangani dokumen ini sebelum diserahkan ke Supir.</p>
+              
+              <div class="border-2 border-dashed border-gray-300 w-full h-40 bg-gray-50 rounded-md relative overflow-hidden">
+                <VueSignaturePad width="100%" height="100%" ref="signaturePad" />
+                <button type="button" @click="$refs.signaturePad.clearSignature()" class="absolute top-2 right-2 text-xs text-gray-600 bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded shadow-sm transition-colors z-10">
+                  Hapus
+                </button>
+              </div>
+            </div>
+
             <div class="pt-5 border-t border-gray-200 flex justify-end">
               <button type="submit" :disabled="loading"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50">
-                {{ loading ? 'Menyimpan...' : 'Simpan Draft' }}
+                class="inline-flex justify-center py-2 px-6 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-colors">
+                {{ loading ? 'Memproses...' : 'Simpan & Tugaskan' }}
               </button>
             </div>
           </form>
@@ -78,6 +90,7 @@ import AdminNavbar from '@/components/AdminNavbar.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const signaturePad = ref(null)
 
 const loading = ref(false)
 const supirList = ref([])
@@ -101,6 +114,19 @@ const generateNomor = () => {
 }
 
 const submitForm = async () => {
+  if (!signaturePad.value) return
+  
+  const { isEmpty, data: signatureData } = signaturePad.value.saveSignature()
+  if (isEmpty) {
+    alert('Harap berikan tanda tangan Admin sebelum menyimpan.')
+    return
+  }
+
+  if (!form.supir_id) {
+    alert('Harap pilih Supir untuk ditugaskan.')
+    return
+  }
+
   try {
     loading.value = true
     const { data, error } = await supabase
@@ -112,12 +138,15 @@ const submitForm = async () => {
         data_barang: form.data_barang,
         supir_id: form.supir_id,
         admin_id: authStore.user.id,
-        status: form.supir_id ? 'MENUNGGU ADMIN' : 'DRAFT'
+        status: 'MENUNGGU SUPIR', // Langsung masuk ke HP Supir
+        admin_signature: signatureData,
+        admin_signed_at: new Date().toISOString()
       })
       .select()
       .single()
 
     if (error) throw error
+    alert('Surat Jalan berhasil dibuat dan diserahkan ke Supir!')
     router.push(`/admin/surat-jalan/${data.id}`)
   } catch (err) {
     console.error(err)

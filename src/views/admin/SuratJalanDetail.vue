@@ -9,10 +9,10 @@
           <p class="text-sm text-gray-500 mt-1">{{ sj.nomor_dokumen }}</p>
         </div>
         <div class="flex gap-2">
-          <button @click="exportPdf" class="px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+          <button @click="exportPdf" class="px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors">
             Export PDF
           </button>
-          <button @click="exportExcel" class="px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+          <button @click="exportExcel" class="px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors">
             Export Excel
           </button>
         </div>
@@ -27,7 +27,7 @@
                 <dl class="mt-4 grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
                   <div class="sm:col-span-2">
                     <dt class="text-sm font-medium text-gray-500">Status</dt>
-                    <dd class="mt-1 text-sm font-semibold text-gray-900">{{ sj.status }}</dd>
+                    <dd class="mt-1 text-sm font-semibold text-blue-600 bg-blue-50 inline-block px-3 py-1 rounded-full">{{ sj.status }}</dd>
                   </div>
                   <div class="sm:col-span-2">
                     <dt class="text-sm font-medium text-gray-500">Customer</dt>
@@ -48,7 +48,7 @@
 
               <div>
                 <h3 class="text-lg font-medium leading-6 text-gray-900">Data Barang</h3>
-                <div class="mt-4 text-sm text-gray-900 whitespace-pre-wrap">{{ sj.data_barang }}</div>
+                <div class="mt-4 text-sm text-gray-900 whitespace-pre-wrap bg-gray-50 p-4 rounded-md border border-gray-100">{{ sj.data_barang }}</div>
               </div>
             </div>
 
@@ -58,16 +58,10 @@
                 <p class="text-sm font-medium text-gray-700 mb-4">Dibuat Oleh (Admin)</p>
                 <div v-if="sj.admin_signature">
                   <img :src="sj.admin_signature" class="mx-auto h-32 object-contain" alt="TTD Admin" />
-                  <p class="text-xs text-gray-500 mt-2">Ditandatangani pada: {{ formatDate(sj.admin_signed_at) }}</p>
+                  <p class="text-xs text-gray-500 mt-2">Ditandatangani pada: <br>{{ formatDate(sj.admin_signed_at) }}</p>
                 </div>
-                <div v-else class="flex flex-col items-center">
-                  <div class="border-2 border-dashed border-gray-300 w-full max-w-xs h-32 bg-gray-50 rounded-md">
-                    <VueSignaturePad width="100%" height="100%" ref="signaturePad" />
-                  </div>
-                  <div class="mt-2 flex gap-2">
-                    <button @click="clearSignature" class="text-xs text-gray-600 px-2 py-1 bg-gray-200 rounded">Hapus</button>
-                    <button @click="saveSignature" class="text-xs text-white px-2 py-1 bg-blue-600 rounded">Simpan TTD & Serahkan</button>
-                  </div>
+                <div v-else class="border-2 border-dashed border-gray-300 w-full max-w-xs h-32 mx-auto bg-gray-50 flex items-center justify-center rounded-md">
+                  <span class="text-gray-400 text-sm">Tidak ada TTD Admin</span>
                 </div>
               </div>
               
@@ -75,9 +69,9 @@
                 <p class="text-sm font-medium text-gray-700 mb-4">Diterima Oleh (Supir)</p>
                 <div v-if="sj.supir_signature">
                   <img :src="sj.supir_signature" class="mx-auto h-32 object-contain" alt="TTD Supir" />
-                  <p class="text-xs text-gray-500 mt-2">Ditandatangani pada: {{ formatDate(sj.supir_signed_at) }}</p>
+                  <p class="text-xs text-gray-500 mt-2">Ditandatangani pada: <br>{{ formatDate(sj.supir_signed_at) }}</p>
                 </div>
-                <div v-else class="border-2 border-dashed border-gray-300 w-full max-w-xs h-32 mx-auto bg-gray-50 flex items-center justify-center">
+                <div v-else class="border-2 border-dashed border-gray-300 w-full max-w-xs h-32 mx-auto bg-gray-50 flex items-center justify-center rounded-md">
                   <span class="text-gray-400 text-sm">Menunggu TTD Supir</span>
                 </div>
               </div>
@@ -91,17 +85,18 @@
                   <img v-if="sj.bukti_foto_url" :src="sj.bukti_foto_url" class="rounded-lg shadow-sm max-w-full h-auto max-h-64 object-cover" alt="Bukti Foto" />
                 </div>
                 <div>
-                  <dl class="space-y-4 text-sm text-gray-700">
+                  <dl class="space-y-4 text-sm text-gray-700 bg-green-50 p-4 rounded-md border border-green-100">
                     <div>
                       <dt class="font-medium text-gray-500">Waktu Pengiriman</dt>
-                      <dd>{{ formatDate(sj.bukti_waktu) }}</dd>
+                      <dd class="font-semibold">{{ formatDate(sj.bukti_waktu) }}</dd>
                     </div>
-                    <div>
+                    <div class="pt-2 border-t border-green-200">
                       <dt class="font-medium text-gray-500">Lokasi GPS</dt>
-                      <dd>{{ sj.bukti_latitude }}, {{ sj.bukti_longitude }}</dd>
-                      <dd class="mt-1">
-                        <a :href="`https://www.google.com/maps/search/?api=1&query=${sj.bukti_latitude},${sj.bukti_longitude}`" target="_blank" class="text-blue-600 hover:underline">
-                          Lihat di Maps
+                      <dd class="font-mono text-xs mt-1">{{ sj.bukti_latitude }}, {{ sj.bukti_longitude }}</dd>
+                      <dd class="mt-2">
+                        <a :href="`https://www.google.com/maps/search/?api=1&query=${sj.bukti_latitude},${sj.bukti_longitude}`" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 hover:underline">
+                          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                          Buka di Google Maps
                         </a>
                       </dd>
                     </div>
@@ -114,7 +109,7 @@
         </div>
       </div>
     </main>
-    <div v-else-if="!loading" class="text-center py-12">Data tidak ditemukan</div>
+    <div v-else-if="!loading" class="text-center py-12 text-gray-500">Data tidak ditemukan</div>
   </div>
 </template>
 
@@ -131,7 +126,6 @@ const route = useRoute()
 const sj = ref(null)
 const loading = ref(true)
 const supirName = ref('')
-const signaturePad = ref(null)
 
 const fetchDetail = async () => {
   try {
@@ -159,44 +153,6 @@ const fetchDetail = async () => {
 const formatDate = (dateString) => {
   if (!dateString) return '-'
   return new Date(dateString).toLocaleString('id-ID')
-}
-
-const clearSignature = () => {
-  if (signaturePad.value) {
-    signaturePad.value.clearSignature()
-  }
-}
-
-const saveSignature = async () => {
-  if (!signaturePad.value) return
-  const { isEmpty, data } = signaturePad.value.saveSignature()
-  if (isEmpty) {
-    alert('Harap berikan tanda tangan')
-    return
-  }
-  
-  if (!sj.value.supir_id) {
-    alert('Pilih supir terlebih dahulu sebelum menyerahkan (edit belum didukung di UI demo ini, asumsikan sudah ada supir saat buat)')
-    return
-  }
-
-  try {
-    const { error } = await supabase
-      .from('surat_jalan')
-      .update({
-        admin_signature: data,
-        admin_signed_at: new Date().toISOString(),
-        status: 'MENUNGGU SUPIR'
-      })
-      .eq('id', sj.value.id)
-      
-    if (error) throw error
-    alert('Berhasil disimpan')
-    await fetchDetail()
-  } catch (err) {
-    console.error(err)
-    alert('Gagal menyimpan TTD')
-  }
 }
 
 const exportPdf = async () => {
