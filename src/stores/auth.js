@@ -49,7 +49,7 @@ export const useAuthStore = defineStore('auth', () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin
+        redirectTo: window.location.origin + import.meta.env.BASE_URL
       }
     })
     if (error) throw error
