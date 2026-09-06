@@ -15,7 +15,7 @@
       </div>
 
       <!-- Login Card -->
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 animate-fade-in-up delay-100">
+      <div class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 sm:p-8 animate-fade-in-up delay-100">
         <div class="mb-6">
           <h2 class="text-lg font-semibold text-gray-900">Selamat Datang</h2>
           <p class="text-sm text-gray-500 mt-1 leading-relaxed">Gunakan akun Google Anda untuk masuk ke sistem.</p>
@@ -36,7 +36,7 @@
         <button
           @click="handleLogin"
           :disabled="loading"
-          class="relative w-full flex items-center justify-center gap-3 px-4 py-3.5 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 text-sm font-semibold text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          class="relative w-full flex items-center justify-center gap-3 px-4 py-3.5 border-2 border-gray-900 rounded-xl bg-white hover:bg-gray-50 active:translate-y-0.5 active:shadow-none transition-all duration-150 text-sm font-bold text-gray-800 shadow-neo focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <svg v-if="!loading" class="w-5 h-5" viewBox="0 0 48 48">
             <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
@@ -62,9 +62,11 @@
 <script setup>
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useToast } from '@/composables/useToast'
 import { Package, Truck, ShieldCheck, Loader2 } from 'lucide-vue-next'
 
 const authStore = useAuthStore()
+const { showToast } = useToast()
 const loading = ref(false)
 
 const handleLogin = async () => {
@@ -72,7 +74,7 @@ const handleLogin = async () => {
     loading.value = true
     await authStore.signInWithGoogle()
   } catch (error) {
-    alert(error.message)
+    showToast(error.message || 'Gagal terhubung dengan Google.', 'error')
     loading.value = false
   }
 }
