@@ -9,11 +9,11 @@
           <p class="text-sm text-gray-500 mt-1">{{ sj.nomor_dokumen }}</p>
         </div>
         <div class="flex gap-2">
-          <button @click="exportPdf" class="px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors">
-            Export PDF
+          <button @click="exportPdf" :disabled="exportingPdf" class="px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors disabled:opacity-50">
+            {{ exportingPdf ? 'Memproses...' : 'Export PDF' }}
           </button>
-          <button @click="exportExcel" class="px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors">
-            Export Excel
+          <button @click="exportExcel" :disabled="exportingExcel" class="px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors disabled:opacity-50">
+            {{ exportingExcel ? 'Memproses...' : 'Export Excel' }}
           </button>
         </div>
       </div>
@@ -82,7 +82,7 @@
               <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Bukti Pengiriman</h3>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
-                  <img v-if="sj.bukti_foto_url" :src="sj.bukti_foto_url" class="rounded-lg shadow-sm max-w-full h-auto max-h-64 object-cover" alt="Bukti Foto" />
+                  <img v-if="sj.bukti_foto_url" :src="sj.bukti_foto_url" crossorigin="anonymous" class="rounded-lg shadow-sm max-w-full h-auto max-h-64 object-cover" alt="Bukti Foto" />
                 </div>
                 <div>
                   <dl class="space-y-4 text-sm text-gray-700 bg-green-50 p-4 rounded-md border border-green-100">
@@ -126,6 +126,8 @@ const route = useRoute()
 const sj = ref(null)
 const loading = ref(true)
 const supirName = ref('')
+const exportingPdf = ref(false)
+const exportingExcel = ref(false)
 
 const fetchDetail = async () => {
   try {
@@ -159,35 +161,56 @@ const exportPdf = async () => {
   const element = document.getElementById('print-area')
   if (!element) return
   
-  const canvas = await html2canvas(element, { scale: 2 })
-  const imgData = canvas.toDataURL('image/jpeg', 0.8)
-  
-  const pdf = new jsPDF('p', 'mm', 'a4')
-  const pdfWidth = pdf.internal.pageSize.getWidth()
-  const pdfHeight = (canvas.height * pdfWidth) / canvas.width
-  
-  pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight)
-  pdf.save(`${sj.value.nomor_dokumen}.pdf`)
+  try {
+    exportingPdf.value = true
+    const canvas = await html2canvas(element, { 
+      scale: 2, 
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff'
+    })
+    const imgData = canvas.toDataURL('image/jpeg', 0.8)
+    
+    const pdf = new jsPDF('p', 'mm', 'a4')
+    const pdfWidth = pdf.internal.pageSize.getWidth()
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width
+    
+    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight)
+    pdf.save(`${sj.value.nomor_dokumen}.pdf`)
+  } catch (err) {
+    console.error('PDF Export Error:', err)
+    alert('Gagal mengekspor PDF. Pastikan koneksi internet stabil.')
+  } finally {
+    exportingPdf.value = false
+  }
 }
 
 const exportExcel = () => {
-  const dataToExport = [{
-    'Nomor Dokumen': sj.value.nomor_dokumen,
-    'Status': sj.value.status,
-    'Tanggal Pengiriman': sj.value.tanggal_pengiriman,
-    'Customer': sj.value.customer,
-    'Data Barang': sj.value.data_barang,
-    'Supir': supirName.value,
-    'Waktu TTD Admin': sj.value.admin_signed_at ? formatDate(sj.value.admin_signed_at) : '-',
-    'Waktu TTD Supir': sj.value.supir_signed_at ? formatDate(sj.value.supir_signed_at) : '-',
-    'Waktu Selesai': sj.value.bukti_at ? formatDate(sj.value.bukti_at) : '-',
-    'Lokasi GPS (Lat, Lng)': sj.value.bukti_latitude ? `${sj.value.bukti_latitude}, ${sj.value.bukti_longitude}` : '-'
-  }]
-  
-  const worksheet = XLSX.utils.json_to_sheet(dataToExport)
-  const workbook = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Surat Jalan')
-  XLSX.writeFile(workbook, `${sj.value.nomor_dokumen}.xlsx`)
+  try {
+    exportingExcel.value = true
+    const dataToExport = [{
+      'Nomor Dokumen': sj.value.nomor_dokumen,
+      'Status': sj.value.status,
+      'Tanggal Pengiriman': sj.value.tanggal_pengiriman,
+      'Customer': sj.value.customer,
+      'Data Barang': sj.value.data_barang,
+      'Supir': supirName.value,
+      'Waktu TTD Admin': sj.value.admin_signed_at ? formatDate(sj.value.admin_signed_at) : '-',
+      'Waktu TTD Supir': sj.value.supir_signed_at ? formatDate(sj.value.supir_signed_at) : '-',
+      'Waktu Selesai': sj.value.bukti_at ? formatDate(sj.value.bukti_at) : '-',
+      'Lokasi GPS (Lat, Lng)': sj.value.bukti_latitude ? `${sj.value.bukti_latitude}, ${sj.value.bukti_longitude}` : '-'
+    }]
+    
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Surat Jalan')
+    XLSX.writeFile(workbook, `${sj.value.nomor_dokumen}.xlsx`)
+  } catch (err) {
+    console.error('Excel Export Error:', err)
+    alert('Gagal mengekspor Excel.')
+  } finally {
+    exportingExcel.value = false
+  }
 }
 
 onMounted(() => {
