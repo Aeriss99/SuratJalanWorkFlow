@@ -1,11 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://mqxjitwshyoebjoeahbw.supabase.co'
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xeGppdHdzaHlvZWJqb2VhaGJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3MDgxMTAsImV4cCI6MjEwNDI4NDExMH0.Fn7zBrxfaTa8vZCbSfajmKIm7rJQwPgvZSs0wrnRZME'
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Supabase URL or Anon Key is missing. Check your environment variables / GitHub Secrets.')
-  // Fallback to prevent immediate crash, though auth will fail later
-}
-
-export const supabase = createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseAnonKey || 'placeholder')
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
