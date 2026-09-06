@@ -208,7 +208,7 @@ const selesaiTugas = async () => {
         bukti_foto_url: photoUrl,
         bukti_latitude: gps.lat,
         bukti_longitude: gps.lng,
-        bukti_waktu: new Date().toISOString()
+        bukti_at: new Date().toISOString()
       })
       .eq('id', sj.value.id)
       

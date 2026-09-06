@@ -88,7 +88,7 @@
                   <dl class="space-y-4 text-sm text-gray-700 bg-green-50 p-4 rounded-md border border-green-100">
                     <div>
                       <dt class="font-medium text-gray-500">Waktu Pengiriman</dt>
-                      <dd class="font-semibold">{{ formatDate(sj.bukti_waktu) }}</dd>
+                      <dd class="font-semibold">{{ formatDate(sj.bukti_at) }}</dd>
                     </div>
                     <div class="pt-2 border-t border-green-200">
                       <dt class="font-medium text-gray-500">Lokasi GPS</dt>
@@ -180,7 +180,7 @@ const exportExcel = () => {
     'Supir': supirName.value,
     'Waktu TTD Admin': sj.value.admin_signed_at ? formatDate(sj.value.admin_signed_at) : '-',
     'Waktu TTD Supir': sj.value.supir_signed_at ? formatDate(sj.value.supir_signed_at) : '-',
-    'Waktu Selesai': sj.value.bukti_waktu ? formatDate(sj.value.bukti_waktu) : '-',
+    'Waktu Selesai': sj.value.bukti_at ? formatDate(sj.value.bukti_at) : '-',
     'Lokasi GPS (Lat, Lng)': sj.value.bukti_latitude ? `${sj.value.bukti_latitude}, ${sj.value.bukti_longitude}` : '-'
   }]
   
