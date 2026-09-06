@@ -187,9 +187,6 @@ import { useRoute } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import AdminNavbar from '@/components/AdminNavbar.vue'
 import { useToast } from '@/composables/useToast'
-import { jsPDF } from 'jspdf'
-import html2canvas from 'html2canvas'
-import * as XLSX from 'xlsx'
 
 const route = useRoute()
 const sj = ref(null)
@@ -233,6 +230,15 @@ const exportPdf = async () => {
   
   try {
     exportingPdf.value = true
+    
+    // Lazy load heavy libraries only when button is clicked
+    const [{ jsPDF }, html2canvasModule] = await Promise.all([
+      import('jspdf'),
+      import('html2canvas')
+    ])
+    // Depending on the export structure, html2canvas might be the default export
+    const html2canvas = html2canvasModule.default || html2canvasModule
+    
     const canvas = await html2canvas(element, { 
       scale: 2, 
       useCORS: true,
@@ -255,9 +261,13 @@ const exportPdf = async () => {
   }
 }
 
-const exportExcel = () => {
+const exportExcel = async () => {
   try {
     exportingExcel.value = true
+    
+    // Lazy load xlsx library
+    const XLSX = await import('xlsx')
+    
     const dataToExport = [{
       'Nomor Dokumen': sj.value.nomor_dokumen,
       'Status': sj.value.status,
