@@ -64,20 +64,32 @@
         <!-- ================= WORKFLOW ACTIONS ================= -->
         
         
-                <!-- DRAFT -->
-        <div v-if="sj.status === 'DRAFT'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 text-center">
-          <h3 class="font-black text-lg mb-4">Aksi Dokumen: Draf</h3>
-          <button @click="changeStatusSafe('ASSIGNED', 'CREATED_AND_ASSIGNED', 'Tugaskan surat jalan ini secara terbuka?')" :disabled="submitting" class="w-full bg-blue-400 border-2 border-gray-900 text-gray-900 font-black px-6 py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all text-lg">
-            BUKA PENUGASAN
-          </button>
+                        <!-- DRAFT -->
+        <div v-if="sj.status === 'DRAFT'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6">
+          <h3 class="font-black text-lg mb-4">Aksi Dokumen: Penugasan</h3>
+          <div class="flex flex-col sm:flex-row gap-4 items-end">
+            <div class="flex-1 w-full">
+              <label class="block text-sm font-bold mb-2">Pilih Pengemudi</label>
+              <select v-model="selectedDriverId" class="block w-full border-2 border-gray-900 rounded-xl p-3 font-bold bg-white focus:ring-0">
+                <option :value="null">-- Pilih Pengemudi --</option>
+                <option v-for="u in usersList" :key="u.id" :value="u.id">{{ u.name || u.email }}</option>
+              </select>
+            </div>
+            <button @click="assignDriver" :disabled="submitting || !selectedDriverId" class="w-full sm:w-auto bg-blue-400 border-2 border-gray-900 text-gray-900 font-black px-6 py-3.5 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
+              SIMPAN PENUGASAN
+            </button>
+          </div>
         </div>
 
-        <!-- ASSIGNED (Open Task) -->
-        <div v-if="sj.status === 'ASSIGNED'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 text-center">
-          <h3 class="font-black text-lg mb-4">Tugas Terbuka</h3>
+        <!-- ASSIGNED -->
+        <div v-if="sj.status === 'ASSIGNED' && isAssignedDriver" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 text-center">
+          <h3 class="font-black text-lg mb-4">Tugas Baru Ditetapkan Ke Anda</h3>
           <button @click="acceptTask" :disabled="submitting" class="w-full bg-indigo-300 border-2 border-gray-900 text-gray-900 font-black px-6 py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all text-lg">
-            AMBIL & TERIMA TUGAS
+            TERIMA TUGAS
           </button>
+        </div>
+        <div v-if="sj.status === 'ASSIGNED' && !isAssignedDriver" class="p-4 bg-orange-50 border-2 border-orange-200 rounded-xl text-orange-800 font-bold text-center">
+          Menunggu pengemudi ({{ supirName }}) menerima penugasan ini.
         </div>
         <!-- ACCEPTED (Start Delivery) -->
         <div v-if="sj.status === 'ACCEPTED' && isAssignedDriver" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 text-center">
@@ -403,13 +415,42 @@ const changeStatus = async (newStatus, actionLabel = 'STATUS_CHANGED', reason = 
 
 
 
+
+const assignDriver = async () => {
+  if (!selectedDriverId.value) return
+  if (!confirm('Tugaskan pengemudi yang dipilih?')) return
+  try {
+    submitting.value = true
+    const { data, error } = await supabase
+      .from('surat_jalan')
+      .update({ status: 'ASSIGNED', supir_id: selectedDriverId.value })
+      .eq('id', sj.value.id)
+      .eq('status', 'DRAFT')
+      .select()
+      
+    if (error) throw error
+    if (data.length === 0) {
+       showToast('Gagal assign: Dokumen sudah berubah status', 'error')
+       await fetchDetail()
+       return
+    }
+    await logHistory('DRIVER_ASSIGNED', 'ASSIGNED')
+    showToast('Pengemudi berhasil ditugaskan', 'success')
+    await fetchDetail()
+  } catch(err) {
+    showToast('Gagal menugaskan pengemudi', 'error')
+  } finally {
+    submitting.value = false
+  }
+}
+
 const acceptTask = async () => {
   if (!confirm('Terima penugasan pengiriman ini?')) return
   try {
     submitting.value = true
     const { data, error } = await supabase
       .from('surat_jalan')
-      .update({ status: 'ACCEPTED', supir_id: authStore.user.id })
+      .update({ status: 'ACCEPTED' })
       .eq('id', sj.value.id)
       .eq('status', 'ASSIGNED')
       .select()
@@ -439,11 +480,11 @@ const recallAssignment = async () => {
     submitting.value = true
     const { error } = await supabase
       .from('surat_jalan')
-      .update({ status: 'ASSIGNED', supir_id: null })
+      .update({ status: 'DRAFT', supir_id: null })
       .eq('id', sj.value.id)
       
     if (error) throw error
-    await logHistory('ASSIGNMENT_CANCELLED', 'ASSIGNED', reason)
+    await logHistory('ASSIGNMENT_CANCELLED', 'DRAFT', reason)
     showToast('Penugasan berhasil dibatalkan', 'success')
     await fetchDetail()
   } catch (err) {
@@ -459,7 +500,7 @@ const rejectAssignment = () => {
   
   // Revert back to APPROVED, remove supir_id
   supabase.from('surat_jalan')
-    .update({ status: 'ASSIGNED', supir_id: null })
+    .update({ status: 'DRAFT', supir_id: null })
     .eq('id', sj.value.id)
     .then(async ({ error }) => {
       if (error) throw error

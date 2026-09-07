@@ -12,7 +12,7 @@
 
       <div class="mt-4 px-4 sm:px-0">
         <div class="bg-white shadow-neo border-2 border-gray-900 sm:rounded-2xl p-6 sm:p-8">
-          <form @submit.prevent="submitForm('ASSIGNED')" class="space-y-6">
+          <form @submit.prevent="submitForm('DRAFT')" class="space-y-6">
             <div>
               <label class="block text-sm font-bold text-gray-800 mb-2">Nomor Dokumen</label>
               <div class="flex gap-4">
@@ -51,7 +51,7 @@
               </button>
               <button type="submit" :disabled="loading"
                 class="w-full sm:flex-1 bg-blue-500 border-2 border-gray-900 text-gray-900 font-black py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50 text-base">
-                BUKA PENUGASAN
+                BUAT DRAF / SURAT JALAN
               </button>
             </div>
           </form>
@@ -114,7 +114,7 @@ const submitForm = async (status) => {
     await supabase.from('sj_history').insert({
       sj_id: data.id,
       actor_id: authStore.user.id,
-      action: status === 'DRAFT' ? 'CREATED_DRAFT' : 'CREATED_AND_ASSIGNED',
+      action: 'CREATED_DRAFT',
       status_after: status
     })
 
