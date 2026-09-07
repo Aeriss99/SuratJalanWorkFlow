@@ -20,7 +20,7 @@
           <p class="text-2xl font-black text-gray-900">{{ getTabCount('DRAFT') }}</p>
         </div>
         <div class="bg-orange-50 border-2 border-orange-200 rounded-2xl p-4 shadow-sm">
-          <p class="text-xs font-bold text-orange-800 uppercase">Menunggu Supir</p>
+          <p class="text-xs font-bold text-orange-800 uppercase">Tugas Terbuka</p>
           <p class="text-2xl font-black text-orange-900">{{ getTabCount('ASSIGNED') }}</p>
         </div>
         <div class="bg-purple-50 border-2 border-purple-200 rounded-2xl p-4 shadow-sm">
@@ -91,7 +91,7 @@
                   </p>
                   <div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs font-medium text-gray-500">
                     <p>Tgl: <span class="font-bold text-gray-800">{{ sj.tanggal_pengiriman }}</span></p>
-                    <p v-if="sj.supir_id">Supir: <span class="font-bold text-gray-800">{{ getSupirName(sj.supir_id) }}</span></p>
+                    <p v-if="sj.supir_id">Petugas: <span class="font-bold text-gray-800">{{ getSupirName(sj.supir_id) }}</span></p>
                   </div>
                 </div>
                 <div class="hidden sm:flex flex-shrink-0 items-center">
@@ -140,7 +140,7 @@ const tabs = [
   { id: 'semua', name: 'Semua' },
   { id: 'DRAFT', name: 'Draft' },
   { id: 'ASSIGNED', name: 'Tugas Terbuka' },
-  { id: 'ACCEPTED', name: 'Diterima Supir' },
+  { id: 'ACCEPTED', name: 'Diterima' },
   { id: 'ON_DELIVERY', name: 'Dalam Pengiriman' },
   { id: 'DELIVERED', name: 'Terkirim' },
   { id: 'COMPLETED', name: 'Selesai' },

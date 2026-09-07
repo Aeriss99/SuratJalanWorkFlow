@@ -46,7 +46,7 @@
                   <dd class="mt-1 text-sm font-bold text-gray-900">{{ sj.tanggal_pengiriman }}</dd>
                 </div>
                 <div class="sm:col-span-1">
-                  <dt class="text-xs font-bold text-gray-500 uppercase tracking-wider">Penugasan Supir</dt>
+                  <dt class="text-xs font-bold text-gray-500 uppercase tracking-wider">Petugas Assigned</dt>
                   <dd class="mt-1 text-sm font-bold text-gray-900">
                     {{ supirName || 'Belum dipilih' }}
                   </dd>
@@ -65,31 +65,19 @@
         
         
                         <!-- DRAFT -->
-        <div v-if="sj.status === 'DRAFT'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6">
-          <h3 class="font-black text-lg mb-4">Aksi Dokumen: Penugasan</h3>
-          <div class="flex flex-col sm:flex-row gap-4 items-end">
-            <div class="flex-1 w-full">
-              <label class="block text-sm font-bold mb-2">Pilih Pengemudi</label>
-              <select v-model="selectedDriverId" class="block w-full border-2 border-gray-900 rounded-xl p-3 font-bold bg-white focus:ring-0">
-                <option :value="null">-- Pilih Pengemudi --</option>
-                <option v-for="u in usersList" :key="u.id" :value="u.id">{{ u.name || u.email }}</option>
-              </select>
-            </div>
-            <button @click="assignDriver" :disabled="submitting || !selectedDriverId" class="w-full sm:w-auto bg-blue-400 border-2 border-gray-900 text-gray-900 font-black px-6 py-3.5 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
-              SIMPAN PENUGASAN
-            </button>
-          </div>
-        </div>
-
-        <!-- ASSIGNED -->
-        <div v-if="sj.status === 'ASSIGNED' && isAssignedDriver" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 text-center">
-          <h3 class="font-black text-lg mb-4">Tugas Baru Ditetapkan Ke Anda</h3>
-          <button @click="acceptTask" :disabled="submitting" class="w-full bg-indigo-300 border-2 border-gray-900 text-gray-900 font-black px-6 py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all text-lg">
-            TERIMA TUGAS
+        <div v-if="sj.status === 'DRAFT'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 text-center">
+          <h3 class="font-black text-lg mb-4">Aksi Dokumen: Draf</h3>
+          <button @click="changeStatusSafe('ASSIGNED', 'CREATED_AND_ASSIGNED', 'Buka surat jalan ini untuk ditugaskan secara publik?')" :disabled="submitting" class="w-full bg-blue-400 border-2 border-gray-900 text-gray-900 font-black px-6 py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all text-lg">
+            BUKA PENUGASAN
           </button>
         </div>
-        <div v-if="sj.status === 'ASSIGNED' && !isAssignedDriver" class="p-4 bg-orange-50 border-2 border-orange-200 rounded-xl text-orange-800 font-bold text-center">
-          Menunggu pengemudi ({{ supirName }}) menerima penugasan ini.
+
+        <!-- ASSIGNED (Open Task) -->
+        <div v-if="sj.status === 'ASSIGNED'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 text-center">
+          <h3 class="font-black text-lg mb-4">Tugas Terbuka</h3>
+          <button @click="acceptTask" :disabled="submitting" class="w-full bg-indigo-300 border-2 border-gray-900 text-gray-900 font-black px-6 py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all text-lg">
+            AMBIL & KERJAKAN TUGAS INI
+          </button>
         </div>
         <!-- ACCEPTED (Start Delivery) -->
         <div v-if="sj.status === 'ACCEPTED' && isAssignedDriver" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 text-center">
@@ -148,7 +136,7 @@
 
         <!-- DELIVERED (Complete) -->
         <div v-if="sj.status === 'DELIVERED'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 text-center">
-          <p class="mb-4 font-bold text-gray-600">Pengiriman telah diselesaikan oleh supir. Validasi bukti dan tutup dokumen.</p>
+          <p class="mb-4 font-bold text-gray-600">Pengiriman telah diselesaikan. Validasi bukti dan tutup dokumen.</p>
           <button @click="changeStatus('COMPLETED', 'Dokumen diverifikasi dan ditutup')" :disabled="submitting" class="bg-blue-400 border-2 border-gray-900 text-gray-900 font-black px-8 py-3 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all">
             TANDAI SELESAI
           </button>
@@ -416,41 +404,14 @@ const changeStatus = async (newStatus, actionLabel = 'STATUS_CHANGED', reason = 
 
 
 
-const assignDriver = async () => {
-  if (!selectedDriverId.value) return
-  if (!confirm('Tugaskan pengemudi yang dipilih?')) return
-  try {
-    submitting.value = true
-    const { data, error } = await supabase
-      .from('surat_jalan')
-      .update({ status: 'ASSIGNED', supir_id: selectedDriverId.value })
-      .eq('id', sj.value.id)
-      .eq('status', 'DRAFT')
-      .select()
-      
-    if (error) throw error
-    if (data.length === 0) {
-       showToast('Gagal assign: Dokumen sudah berubah status', 'error')
-       await fetchDetail()
-       return
-    }
-    await logHistory('DRIVER_ASSIGNED', 'ASSIGNED')
-    showToast('Pengemudi berhasil ditugaskan', 'success')
-    await fetchDetail()
-  } catch(err) {
-    showToast('Gagal menugaskan pengemudi', 'error')
-  } finally {
-    submitting.value = false
-  }
-}
 
 const acceptTask = async () => {
-  if (!confirm('Terima penugasan pengiriman ini?')) return
+  if (!confirm('Ambil dan kerjakan tugas ini?')) return
   try {
     submitting.value = true
     const { data, error } = await supabase
       .from('surat_jalan')
-      .update({ status: 'ACCEPTED' })
+      .update({ status: 'ACCEPTED', supir_id: authStore.user.id })
       .eq('id', sj.value.id)
       .eq('status', 'ASSIGNED')
       .select()
