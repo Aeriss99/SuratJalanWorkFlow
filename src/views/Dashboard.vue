@@ -3,7 +3,7 @@
     <Navbar />
     
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-            <div class="px-4 py-4 sm:px-0 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-2">
+      <div class="px-4 py-4 sm:px-0 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-2">
         <h1 class="text-2xl font-black text-gray-900 tracking-tight">Daftar Surat Jalan</h1>
         <div class="flex gap-2 w-full sm:w-auto">
           <input type="text" v-model="searchQuery" placeholder="Cari No. SJ / Customer..." class="block w-full sm:w-64 px-4 py-2.5 rounded-xl border-2 border-gray-900 focus:ring-0 focus:border-blue-600 text-sm font-bold shadow-sm" />
@@ -13,8 +13,12 @@
         </div>
       </div>
 
-            <!-- Quick Stats -->
-      <div class="px-4 sm:px-0 mb-6 grid grid-cols-3 gap-4">
+      <!-- Quick Stats -->
+      <div class="px-4 sm:px-0 mb-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="bg-gray-100 border-2 border-gray-300 rounded-2xl p-4 shadow-sm">
+          <p class="text-xs font-bold text-gray-600 uppercase">Draft</p>
+          <p class="text-2xl font-black text-gray-900">{{ getTabCount('DRAFT') }}</p>
+        </div>
         <div class="bg-orange-50 border-2 border-orange-200 rounded-2xl p-4 shadow-sm">
           <p class="text-xs font-bold text-orange-800 uppercase">Menunggu Supir</p>
           <p class="text-2xl font-black text-orange-900">{{ getTabCount('ASSIGNED') }}</p>
@@ -52,7 +56,7 @@
                 activeTab === tab.id
                   ? 'bg-gray-900 text-white shadow-neo translate-y-[-2px]'
                   : 'bg-white text-gray-600 border-2 border-gray-900 hover:bg-gray-50',
-                'px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center'
+                'px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center whitespace-nowrap'
               ]"
             >
               {{ tab.name }}
@@ -132,9 +136,9 @@ const loading = ref(true)
 const activeTab = ref('semua')
 const searchQuery = ref('')
 
-
 const tabs = [
   { id: 'semua', name: 'Semua' },
+  { id: 'DRAFT', name: 'Draft' },
   { id: 'ASSIGNED', name: 'Tugas Terbuka' },
   { id: 'ACCEPTED', name: 'Diterima Supir' },
   { id: 'ON_DELIVERY', name: 'Dalam Pengiriman' },
@@ -143,18 +147,13 @@ const tabs = [
   { id: 'CANCELLED', name: 'Dibatalkan' }
 ]
 
-
-import { useToast } from '@/composables/useToast'
-
 const users = ref([])
-const { showToast } = useToast()
 
 const fetchUsers = async () => {
   try {
     const { data, error } = await supabase
       .from('users')
-      .select('id, nomor_dokumen, status, customer, tanggal_pengiriman, supir_id')
-      .limit(200)
+      .select('*')
       .order('created_at', { ascending: false })
       
     if (error) throw error
@@ -163,8 +162,6 @@ const fetchUsers = async () => {
     console.error(err)
   }
 }
-
-
 
 const getSupirName = (supirId) => {
   const user = users.value.find(u => u.id === supirId)
@@ -210,7 +207,5 @@ const getTabCount = (tabId) => {
   if (tabId === 'semua') return suratJalanList.value.length
   return suratJalanList.value.filter(sj => sj.status === tabId).length
 }
-
-
 
 </script>

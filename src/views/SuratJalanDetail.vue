@@ -9,10 +9,10 @@
           <p class="text-sm font-bold text-gray-500 mt-1">{{ sj.nomor_dokumen }}</p>
         </div>
                 <div class="flex flex-wrap gap-3 w-full sm:w-auto">
-          <router-link v-if="sj.status === 'ASSIGNED'" :to="`/surat-jalan/${sj.id}/edit`" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-gray-900 bg-yellow-100 hover:bg-yellow-200 active:translate-y-0.5 active:shadow-none transition-all">
+          <router-link v-if="['DRAFT', 'ASSIGNED'].includes(sj.status)" :to="`/surat-jalan/${sj.id}/edit`" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-gray-900 bg-yellow-100 hover:bg-yellow-200 active:translate-y-0.5 active:shadow-none transition-all">
             Edit
           </router-link>
-          <button v-if="sj.status === 'ASSIGNED'" @click="deleteDocument" :disabled="submitting" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-white bg-red-600 hover:bg-red-700 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
+          <button v-if="sj.status === 'DRAFT'" @click="deleteDocument" :disabled="submitting" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-white bg-red-600 hover:bg-red-700 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
             Hapus
           </button>
           <button v-if="!['COMPLETED', 'CANCELLED', 'REJECTED'].includes(sj.status)" @click="cancelDocument" :disabled="submitting" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-gray-900 bg-red-100 hover:bg-red-200 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
@@ -64,6 +64,14 @@
         <!-- ================= WORKFLOW ACTIONS ================= -->
         
         
+                <!-- DRAFT -->
+        <div v-if="sj.status === 'DRAFT'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 text-center">
+          <h3 class="font-black text-lg mb-4">Aksi Dokumen: Draf</h3>
+          <button @click="changeStatusSafe('ASSIGNED', 'CREATED_AND_ASSIGNED', 'Tugaskan surat jalan ini secara terbuka?')" :disabled="submitting" class="w-full bg-blue-400 border-2 border-gray-900 text-gray-900 font-black px-6 py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all text-lg">
+            BUKA PENUGASAN
+          </button>
+        </div>
+
         <!-- ASSIGNED (Open Task) -->
         <div v-if="sj.status === 'ASSIGNED'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 text-center">
           <h3 class="font-black text-lg mb-4">Tugas Terbuka</h3>

@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50 pb-12">
+  <div class="min-h-screen bg-gray-50 pb-20 sm:pb-12">
     <Navbar />
     
     <main class="max-w-3xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -44,10 +44,14 @@
                 class="block w-full px-4 py-3 rounded-xl border-2 border-gray-900 focus:ring-0 focus:border-blue-600 sm:text-sm font-medium transition-colors resize-y"></textarea>
             </div>
 
-            <div class="pt-6">
+            <div class="pt-6 flex flex-col sm:flex-row gap-4">
+              <button type="button" @click="submitForm('DRAFT')" :disabled="loading"
+                class="w-full sm:flex-1 bg-white border-2 border-gray-900 text-gray-900 font-black py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50 text-base">
+                SIMPAN DRAFT
+              </button>
               <button type="submit" :disabled="loading"
-                class="w-full bg-blue-500 border-2 border-gray-900 text-gray-900 font-black py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50 text-base">
-                BUAT SURAT JALAN
+                class="w-full sm:flex-1 bg-blue-500 border-2 border-gray-900 text-gray-900 font-black py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50 text-base">
+                BUKA PENUGASAN
               </button>
             </div>
           </form>
@@ -110,7 +114,7 @@ const submitForm = async (status) => {
     await supabase.from('sj_history').insert({
       sj_id: data.id,
       actor_id: authStore.user.id,
-      action: status === 'DRAFT' ? 'DIBUAT (DRAF)' : 'SUBMITTED',
+      action: status === 'DRAFT' ? 'CREATED_DRAFT' : 'CREATED_AND_ASSIGNED',
       status_after: status
     })
 

@@ -49,7 +49,7 @@ FOR UPDATE USING (
 -- Semua bisa delete JIKA statusnya masih DRAFT
 CREATE POLICY "Anyone can delete draft surat jalan" ON public.surat_jalan 
 FOR DELETE USING (
-    status = 'ASSIGNED'
+    status = 'DRAFT'
     AND auth.uid() IS NOT NULL
 );
 
