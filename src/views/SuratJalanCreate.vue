@@ -45,21 +45,7 @@
                 class="block w-full px-4 py-3 rounded-xl border-2 border-gray-900 focus:ring-0 focus:border-blue-600 sm:text-sm font-medium transition-colors resize-y"></textarea>
             </div>
 
-            <div>
-              <label class="block text-sm font-bold text-gray-800 mb-2">Tugaskan Supir</label>
-              <div class="relative">
-                <select v-model="form.supir_id" required
-                  class="block w-full pl-4 pr-10 py-3 rounded-xl border-2 border-gray-900 focus:ring-0 focus:border-blue-600 sm:text-sm font-bold transition-colors appearance-none bg-white">
-                  <option :value="null">-- Pilih Supir --</option>
-                  <option v-for="supir in supirList" :key="supir.id" :value="supir.id">
-                    {{ supir.name || supir.email }}
-                  </option>
-                </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-900">
-                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"></path></svg>
-                </div>
-              </div>
-            </div>
+
 
             <div class="border-t-2 border-gray-200 pt-6">
               <label class="block text-base font-bold text-gray-900 mb-1">Tanda Tangan Admin</label>
@@ -101,20 +87,15 @@ const signaturePad = ref(null)
 const { showToast } = useToast()
 
 const loading = ref(false)
-const supirList = ref([])
 
 const form = reactive({
   nomor_dokumen: '',
   tanggal_pengiriman: new Date().toISOString().split('T')[0],
   customer: '',
   data_barang: '',
-  supir_id: null
 })
 
-const fetchSupir = async () => {
-  const { data } = await supabase.from('users').select('*').eq('role', 'SUPIR')
-  if (data) supirList.value = data
-}
+
 
 const generateNomor = () => {
   const timestamp = new Date().getTime().toString().slice(-6)
@@ -130,10 +111,7 @@ const submitForm = async () => {
     return
   }
 
-  if (!form.supir_id) {
-    showToast('Harap pilih Supir untuk ditugaskan.', 'error')
-    return
-  }
+
 
   try {
     loading.value = true
@@ -144,7 +122,7 @@ const submitForm = async () => {
         tanggal_pengiriman: form.tanggal_pengiriman,
         customer: form.customer,
         data_barang: form.data_barang,
-        supir_id: form.supir_id,
+        
         admin_id: authStore.user.id,
         status: 'MENUNGGU SUPIR', // Langsung masuk ke HP Supir
         admin_signature: signatureData,
@@ -165,6 +143,5 @@ const submitForm = async () => {
 }
 
 onMounted(() => {
-  fetchSupir()
-})
+  })
 </script>

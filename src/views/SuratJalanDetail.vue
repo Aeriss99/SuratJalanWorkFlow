@@ -228,6 +228,7 @@ import { useRoute } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar.vue'
 import { useToast } from '@/composables/useToast'
+import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
 const sj = ref(null)
@@ -236,6 +237,7 @@ const supirName = ref('')
 const exportingPdf = ref(false)
 const exportingExcel = ref(false)
 const { showToast } = useToast()
+const authStore = useAuthStore()
 
 const signaturePad = ref(null)
 const cameraInput = ref(null)
@@ -256,6 +258,7 @@ const terimaTugas = async () => {
     const { error } = await supabase
       .from('surat_jalan')
       .update({
+        supir_id: authStore.user.id,
         supir_signature: data,
         supir_signed_at: new Date().toISOString(),
         status: 'DITERIMA SUPIR'
