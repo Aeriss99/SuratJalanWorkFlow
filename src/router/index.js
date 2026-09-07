@@ -11,12 +11,6 @@ const router = createRouter({
       meta: { requiresGuest: true }
     },
     {
-      path: '/pending',
-      name: 'pending',
-      component: () => import('../views/Pending.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
       path: '/',
       name: 'dashboard',
       component: () => import('../views/Dashboard.vue'),
@@ -55,13 +49,7 @@ router.beforeEach(async (to, from, next) => {
     return next('/')
   }
 
-  if (isAuthenticated && userRole === 'PENDING' && to.path !== '/pending' && to.path !== '/login') {
-    return next('/pending')
-  }
 
-  if (isAuthenticated && userRole !== 'PENDING' && to.path === '/pending') {
-    return next('/')
-  }
 
   next()
 })

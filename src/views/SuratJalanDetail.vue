@@ -289,13 +289,17 @@ const handleFotoUpload = (event) => {
 }
 
 const getGPSLocation = () => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     if (!navigator.geolocation) {
-      reject(new Error('GPS tidak didukung di perangkat ini.'))
+      console.warn('GPS tidak didukung.')
+      return resolve({ lat: null, lng: null })
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      (err) => reject(new Error('Gagal mendapatkan lokasi GPS. Pastikan izin lokasi aktif.')),
+      (err) => {
+        console.warn('Gagal mendapatkan lokasi GPS:', err)
+        resolve({ lat: null, lng: null })
+      },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     )
   })
