@@ -27,7 +27,7 @@
           </div>
         </div>
         <div class="hidden sm:block">
-          <nav class="flex space-x-2" aria-label="Tabs">
+          <nav class="flex space-x-2 overflow-x-auto pb-2" aria-label="Tabs">
             <button
               v-for="tab in tabs"
               :key="tab.id"
@@ -122,9 +122,16 @@ const activeTab = ref('semua')
 
 const tabs = [
   { id: 'semua', name: 'Semua' },
-  { id: 'belum_selesai', name: 'Butuh Tindakan' },
-  { id: 'diproses', name: 'Diproses Supir' },
-  { id: 'selesai', name: 'Selesai' }
+  { id: 'DRAFT', name: 'Draft' },
+  { id: 'SUBMITTED', name: 'Waiting Review' },
+  { id: 'APPROVED', name: 'Approved' },
+  { id: 'ASSIGNED', name: 'Assigned' },
+  { id: 'ACCEPTED', name: 'Driver Accepted' },
+  { id: 'ON_DELIVERY', name: 'On Delivery' },
+  { id: 'DELIVERED', name: 'Delivered' },
+  { id: 'COMPLETED', name: 'Completed' },
+  { id: 'REJECTED', name: 'Rejected' },
+  { id: 'CANCELLED', name: 'Cancelled' }
 ]
 
 
@@ -178,49 +185,26 @@ const fetchSuratJalan = async () => {
 
 const filteredList = computed(() => {
   if (activeTab.value === 'semua') return suratJalanList.value
-  
-  return suratJalanList.value.filter(sj => {
-    switch (activeTab.value) {
-      case 'belum_selesai':
-        return ['DRAFT', 'MENUNGGU ADMIN'].includes(sj.status)
-      case 'diproses':
-        return ['MENUNGGU SUPIR', 'DITERIMA SUPIR', 'DALAM PENGIRIMAN'].includes(sj.status)
-      case 'selesai':
-        return sj.status === 'SELESAI'
-      default:
-        return true
-    }
-  })
+  return suratJalanList.value.filter(sj => sj.status === activeTab.value)
 })
-
 
 const getTabCount = (tabId) => {
   if (tabId === 'semua') return suratJalanList.value.length
-
-  
-  return suratJalanList.value.filter(sj => {
-    switch (tabId) {
-      case 'belum_selesai':
-        return ['DRAFT', 'MENUNGGU ADMIN'].includes(sj.status)
-      case 'diproses':
-        return ['MENUNGGU SUPIR', 'DITERIMA SUPIR', 'DALAM PENGIRIMAN'].includes(sj.status)
-      case 'selesai':
-        return sj.status === 'SELESAI'
-      default:
-        return true
-    }
-  }).length
+  return suratJalanList.value.filter(sj => sj.status === tabId).length
 }
 
 const statusColor = (status) => {
   const colors = {
     'DRAFT': 'bg-gray-100 text-gray-800 border-gray-900',
-    'MENUNGGU ADMIN': 'bg-yellow-100 text-yellow-900 border-yellow-900',
-    'MENUNGGU SUPIR': 'bg-orange-100 text-orange-900 border-orange-900',
-    'DITERIMA SUPIR': 'bg-blue-100 text-blue-900 border-blue-900',
-    'DALAM PENGIRIMAN': 'bg-purple-100 text-purple-900 border-purple-900',
-    'SELESAI': 'bg-green-100 text-green-900 border-green-900',
-    'DITOLAK': 'bg-red-100 text-red-900 border-red-900'
+    'SUBMITTED': 'bg-yellow-100 text-yellow-900 border-yellow-900',
+    'APPROVED': 'bg-green-100 text-green-900 border-green-900',
+    'ASSIGNED': 'bg-orange-100 text-orange-900 border-orange-900',
+    'ACCEPTED': 'bg-indigo-100 text-indigo-900 border-indigo-900',
+    'ON_DELIVERY': 'bg-purple-100 text-purple-900 border-purple-900',
+    'DELIVERED': 'bg-teal-100 text-teal-900 border-teal-900',
+    'COMPLETED': 'bg-blue-100 text-blue-900 border-blue-900',
+    'REJECTED': 'bg-red-100 text-red-900 border-red-900',
+    'CANCELLED': 'bg-gray-300 text-gray-900 border-gray-900'
   }
   return colors[status] || 'bg-gray-100 text-gray-800 border-gray-900'
 }

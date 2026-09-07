@@ -12,146 +12,229 @@
           <button @click="exportPdf" :disabled="exportingPdf" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-gray-900 bg-white hover:bg-gray-50 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
             {{ exportingPdf ? 'Memproses...' : 'Export PDF' }}
           </button>
-          <button @click="exportExcel" :disabled="exportingExcel" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-gray-900 bg-white hover:bg-gray-50 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
-            {{ exportingExcel ? 'Memproses...' : 'Export Excel' }}
-          </button>
         </div>
       </div>
 
-      <div class="mt-4 px-4 sm:px-0">
-        <div class="bg-white shadow-neo border-2 border-gray-900 sm:rounded-2xl">
-          <div class="px-6 py-6 sm:p-8">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
-              <div>
-                <h3 class="text-lg font-black text-gray-900 border-b-2 border-gray-100 pb-2 mb-4">Informasi Pengiriman</h3>
-                <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div class="sm:col-span-2">
-                    <dt class="text-xs font-bold text-gray-500 uppercase tracking-wider">Status</dt>
-                    <dd class="mt-1 text-sm font-bold text-blue-800 bg-blue-100 border-2 border-blue-800 inline-block px-3 py-1 rounded-full">{{ sj.status }}</dd>
-                  </div>
-                  <div class="sm:col-span-2">
-                    <dt class="text-xs font-bold text-gray-500 uppercase tracking-wider">Customer</dt>
-                    <dd class="mt-1 text-base font-bold text-gray-900">{{ sj.customer }}</dd>
-                  </div>
-                  <div class="sm:col-span-1">
-                    <dt class="text-xs font-bold text-gray-500 uppercase tracking-wider">Tgl Pengiriman</dt>
-                    <dd class="mt-1 text-sm font-bold text-gray-900">{{ sj.tanggal_pengiriman }}</dd>
-                  </div>
-                  <div class="sm:col-span-1">
-                    <dt class="text-xs font-bold text-gray-500 uppercase tracking-wider">Supir Ditugaskan</dt>
-                    <dd class="mt-1 text-sm font-bold text-gray-900">
-                      {{ supirName || 'Belum dipilih' }}
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-
-              <div>
-                <h3 class="text-lg font-black text-gray-900 border-b-2 border-gray-100 pb-2 mb-4">Data Barang</h3>
-                <div class="text-sm font-medium text-gray-900 whitespace-pre-wrap bg-gray-50 p-4 rounded-xl border-2 border-gray-200">{{ sj.data_barang }}</div>
-              </div>
+      <div class="mt-4 px-4 sm:px-0 space-y-6">
+        <!-- Main Document Data -->
+        <div class="bg-white shadow-neo border-2 border-gray-900 sm:rounded-2xl p-6 sm:p-8">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+            <div>
+              <h3 class="text-lg font-black text-gray-900 border-b-2 border-gray-100 pb-2 mb-4">Informasi Pengiriman</h3>
+              <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div class="sm:col-span-2">
+                  <dt class="text-xs font-bold text-gray-500 uppercase tracking-wider">Status</dt>
+                  <dd class="mt-1 text-sm font-bold px-3 py-1 rounded-full border-2 inline-block" :class="statusColor(sj.status)">
+                    {{ sj.status }}
+                  </dd>
+                </div>
+                <div class="sm:col-span-2">
+                  <dt class="text-xs font-bold text-gray-500 uppercase tracking-wider">Customer</dt>
+                  <dd class="mt-1 text-base font-bold text-gray-900">{{ sj.customer }}</dd>
+                </div>
+                <div class="sm:col-span-1">
+                  <dt class="text-xs font-bold text-gray-500 uppercase tracking-wider">Tgl Pengiriman</dt>
+                  <dd class="mt-1 text-sm font-bold text-gray-900">{{ sj.tanggal_pengiriman }}</dd>
+                </div>
+                <div class="sm:col-span-1">
+                  <dt class="text-xs font-bold text-gray-500 uppercase tracking-wider">Driver Assignment</dt>
+                  <dd class="mt-1 text-sm font-bold text-gray-900">
+                    {{ supirName || 'Belum dipilih' }}
+                  </dd>
+                </div>
+              </dl>
             </div>
 
-            <!-- Tanda Tangan Section -->
-            <div class="mt-10 border-t-2 border-gray-200 pt-8 grid grid-cols-1 sm:grid-cols-2 gap-8 text-center">
-              <div class="bg-gray-50 rounded-2xl p-6 border-2 border-gray-200">
-                <p class="text-sm font-black text-gray-800 mb-4 uppercase tracking-wider">Dibuat Oleh (Admin)</p>
-                <div v-if="sj.admin_signature">
-                  <img :src="sj.admin_signature" class="mx-auto h-24 object-contain mix-blend-multiply" alt="TTD Admin" />
-                  <p class="text-xs font-bold text-gray-500 mt-4">{{ formatDate(sj.admin_signed_at) }}</p>
-                </div>
-                <div v-else class="h-24 flex items-center justify-center">
-                  <span class="text-gray-400 text-sm font-bold">Tidak ada TTD</span>
-                </div>
-              </div>
-              
-              <div class="bg-gray-50 rounded-2xl p-6 border-2 border-gray-200">
-                <p class="text-sm font-black text-gray-800 mb-4 uppercase tracking-wider">Diterima Oleh (Supir)</p>
-                <div v-if="sj.supir_signature">
-                  <img :src="sj.supir_signature" class="mx-auto h-24 object-contain mix-blend-multiply" alt="TTD Supir" />
-                  <p class="text-xs font-bold text-gray-500 mt-4">{{ formatDate(sj.supir_signed_at) }}</p>
-                </div>
-                <div v-else class="h-24 flex items-center justify-center">
-                  <span class="text-gray-400 text-sm font-bold">Menunggu TTD</span>
-                </div>
-              </div>
+            <div>
+              <h3 class="text-lg font-black text-gray-900 border-b-2 border-gray-100 pb-2 mb-4">Data Barang</h3>
+              <div class="text-sm font-medium text-gray-900 whitespace-pre-wrap bg-gray-50 p-4 rounded-xl border-2 border-gray-200">{{ sj.data_barang }}</div>
             </div>
-
-            
-            <!-- Action: TTD & Terima -->
-            <div v-if="sj.status === 'MENUNGGU SUPIR'" class="mt-10 bg-white rounded-2xl border-2 border-gray-900 p-6 shadow-neo">
-              <h3 class="font-black text-gray-900 text-lg mb-2">Tanda Tangan & Terima (Supir)</h3>
-              <p class="text-sm text-gray-500 mb-4 font-medium">Tanda tangani di bawah ini untuk mengonfirmasi penerimaan tugas.</p>
-              
-              <div class="border-2 border-dashed border-gray-400 hover:border-blue-500 rounded-xl bg-gray-50 h-48 mb-5 relative overflow-hidden transition-colors cursor-crosshair">
-                <VueSignaturePad width="100%" height="100%" ref="signaturePad" />
-                <button @click="$refs.signaturePad.clearSignature()" class="absolute top-3 right-3 text-xs font-bold bg-white border-2 border-gray-900 text-gray-800 px-3 py-1.5 rounded-lg shadow-[2px_2px_0_rgb(0,0,0)] active:translate-y-0.5 active:shadow-none transition-all z-10">Hapus</button>
-              </div>
-              
-              <button @click="terimaTugas" :disabled="submitting" class="w-full bg-blue-500 border-2 border-gray-900 text-gray-900 font-black py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50 text-base uppercase tracking-wider flex justify-center items-center gap-2">
-                <span v-if="submitting">Memproses...</span>
-                <span v-else>KONFIRMASI TERIMA</span>
-              </button>
-            </div>
-
-            <!-- Action: Pesanan Sampai -->
-            <div v-if="['DITERIMA SUPIR', 'DALAM PENGIRIMAN'].includes(sj.status)" class="mt-10 bg-white rounded-2xl border-2 border-gray-900 p-6 shadow-neo space-y-5">
-              <h3 class="font-black text-gray-900 text-lg text-center uppercase tracking-wider">Penyelesaian Tugas</h3>
-              
-              <div v-if="!fotoData" class="space-y-4">
-                <div class="border-2 border-dashed border-gray-400 bg-gray-50 rounded-2xl p-10 text-center cursor-pointer hover:bg-gray-100 transition-colors active:scale-95" @click="$refs.cameraInput.click()">
-                  <p class="text-gray-900 font-black mt-2">AMBIL FOTO BUKTI</p>
-                </div>
-                <input type="file" accept="image/*" capture="environment" ref="cameraInput" class="hidden" @change="handleFotoUpload" />
-              </div>
-              
-              <div v-else class="space-y-5">
-                <div class="relative">
-                  <img :src="fotoPreview" class="w-full h-64 object-cover rounded-xl border-2 border-gray-900 shadow-neo" />
-                  <button @click="fotoData = null; fotoPreview = null" class="absolute -top-3 -right-3 bg-red-500 border-2 border-gray-900 text-white px-3 py-1 font-bold rounded-full shadow-neo active:translate-y-0.5 active:shadow-none transition-all">X</button>
-                </div>
-                
-                <button @click="selesaiTugas" :disabled="submitting" class="w-full bg-green-400 border-2 border-gray-900 text-gray-900 font-black py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50 text-lg uppercase tracking-wider flex justify-center items-center gap-2">
-                  <span v-if="submitting">Memproses...</span>
-                  <span v-else>PESANAN SAMPAI</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Bukti Pengiriman -->
-            <div v-if="sj.status === 'SELESAI'" class="mt-10 border-t-2 border-gray-200 pt-8">
-              <h3 class="text-lg font-black text-gray-900 mb-6">Bukti Pengiriman</h3>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                <div>
-                  <img v-if="sj.bukti_foto_url" :src="sj.bukti_foto_url" crossorigin="anonymous" class="rounded-xl border-2 border-gray-900 shadow-neo w-full h-auto max-h-64 object-cover" alt="Bukti Foto" />
-                </div>
-                <div class="flex flex-col justify-center">
-                  <dl class="space-y-5 bg-green-50 p-6 rounded-xl border-2 border-green-600 shadow-neo">
-                    <div>
-                      <dt class="text-xs font-bold text-green-700 uppercase tracking-wider">Waktu Pengiriman</dt>
-                      <dd class="text-base font-black text-green-900 mt-1">{{ formatDate(sj.bukti_at) }}</dd>
-                    </div>
-                    <div>
-                      <dt class="text-xs font-bold text-green-700 uppercase tracking-wider">Lokasi GPS</dt>
-                      <dd class="font-mono text-sm font-bold text-green-900 mt-1">{{ sj.bukti_latitude }}, {{ sj.bukti_longitude }}</dd>
-                      <dd class="mt-3">
-                        <a :href="`https://www.google.com/maps/search/?api=1&query=${sj.bukti_latitude},${sj.bukti_longitude}`" target="_blank" class="inline-flex items-center px-4 py-2 border-2 border-green-800 rounded-lg text-sm font-bold text-green-900 bg-white hover:bg-green-100 transition-colors shadow-[2px_2px_0_rgb(21,128,61)] active:translate-y-0.5 active:shadow-none">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                          Buka di Google Maps
-                        </a>
-                      </dd>
-                    </div>
-                  </dl>
-                </div>
-              </div>
-            </div>
-
           </div>
         </div>
+
+        <!-- ================= WORKFLOW ACTIONS ================= -->
+        
+        <!-- DRAFT -->
+        <div v-if="sj.status === 'DRAFT'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6">
+          <h3 class="font-black text-lg mb-4">Aksi Dokumen: Draft</h3>
+          <button @click="changeStatus('SUBMITTED')" :disabled="submitting" class="w-full sm:w-auto bg-blue-500 border-2 border-gray-900 text-gray-900 font-black px-6 py-3 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all">
+            SUBMIT FOR REVIEW
+          </button>
+        </div>
+
+        <!-- SUBMITTED (Review) -->
+        <div v-if="sj.status === 'SUBMITTED'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6">
+          <h3 class="font-black text-lg mb-4">Aksi Dokumen: Review & Approval</h3>
+          <div class="mb-6">
+            <label class="block text-sm font-bold mb-2">Tanda Tangan Approver</label>
+            <div class="border-2 border-dashed border-gray-400 h-48 bg-gray-50 rounded-xl relative">
+              <VueSignaturePad width="100%" height="100%" ref="sigAdmin" />
+              <button @click="$refs.sigAdmin.clearSignature()" class="absolute top-2 right-2 text-xs font-bold bg-white border-2 border-gray-900 px-2 py-1 rounded shadow-neo">Hapus</button>
+            </div>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-4">
+            <button @click="approveDocument" :disabled="submitting" class="flex-1 bg-green-400 border-2 border-gray-900 text-gray-900 font-black px-6 py-3 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all">
+              APPROVE DOKUMEN
+            </button>
+            <button @click="promptReject" :disabled="submitting" class="flex-1 bg-red-400 border-2 border-gray-900 text-gray-900 font-black px-6 py-3 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all">
+              REJECT
+            </button>
+          </div>
+        </div>
+
+        <!-- APPROVED (Assign) -->
+        <div v-if="sj.status === 'APPROVED'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6">
+          <h3 class="font-black text-lg mb-4">Aksi Dokumen: Assign Driver</h3>
+          <div class="flex flex-col sm:flex-row gap-4 items-end">
+            <div class="flex-1 w-full">
+              <label class="block text-sm font-bold mb-2">Pilih Driver</label>
+              <select v-model="selectedDriverId" class="block w-full border-2 border-gray-900 rounded-xl p-3 font-bold bg-white focus:ring-0">
+                <option :value="null">-- Pilih Driver --</option>
+                <option v-for="u in usersList" :key="u.id" :value="u.id">{{ u.name || u.email }}</option>
+              </select>
+            </div>
+            <button @click="assignDriver" :disabled="submitting || !selectedDriverId" class="w-full sm:w-auto bg-orange-300 border-2 border-gray-900 text-gray-900 font-black px-6 py-3.5 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
+              ASSIGN TUGAS
+            </button>
+          </div>
+        </div>
+
+        <!-- ASSIGNED (Driver Accept/Reject) -->
+        <div v-if="sj.status === 'ASSIGNED' && isAssignedDriver" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6">
+          <h3 class="font-black text-lg mb-4">Tugas Baru Ditetapkan Ke Anda</h3>
+          <div class="flex flex-col sm:flex-row gap-4">
+            <button @click="changeStatus('ACCEPTED', 'Menerima penugasan')" :disabled="submitting" class="flex-1 bg-indigo-300 border-2 border-gray-900 text-gray-900 font-black px-6 py-3 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all">
+              TERIMA TUGAS
+            </button>
+            <button @click="rejectAssignment" :disabled="submitting" class="flex-1 bg-red-300 border-2 border-gray-900 text-gray-900 font-black px-6 py-3 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all">
+              TOLAK TUGAS
+            </button>
+          </div>
+        </div>
+        <div v-if="sj.status === 'ASSIGNED' && !isAssignedDriver" class="p-4 bg-orange-50 border-2 border-orange-200 rounded-xl text-orange-800 font-bold text-center">
+          Menunggu driver ({{ supirName }}) merespon penugasan ini.
+        </div>
+
+        <!-- ACCEPTED (Start Delivery) -->
+        <div v-if="sj.status === 'ACCEPTED' && isAssignedDriver" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 text-center">
+          <button @click="changeStatus('ON_DELIVERY', 'Mulai perjalanan')" :disabled="submitting" class="w-full bg-purple-400 border-2 border-gray-900 text-gray-900 font-black px-6 py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all text-xl">
+            MULAI PENGIRIMAN
+          </button>
+        </div>
+
+        <!-- ON_DELIVERY (Check in / Proof) -->
+        <div v-if="sj.status === 'ON_DELIVERY' && isAssignedDriver" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 space-y-6">
+          <h3 class="font-black text-xl text-center uppercase">Penyelesaian Pengiriman (POD)</h3>
+          
+          <div v-if="!fotoData" class="border-2 border-dashed border-gray-400 bg-gray-50 rounded-2xl p-10 text-center cursor-pointer hover:bg-gray-100 transition-colors" @click="$refs.cameraInput.click()">
+            <p class="text-gray-900 font-black text-lg">AMBIL FOTO BUKTI</p>
+          </div>
+          <input type="file" accept="image/*" capture="environment" ref="cameraInput" class="hidden" @change="handleFotoUpload" />
+          
+          <div v-if="fotoData" class="space-y-6">
+            <div class="relative">
+              <img :src="fotoPreview" class="w-full h-64 object-cover rounded-xl border-2 border-gray-900 shadow-neo" />
+              <button @click="fotoData = null; fotoPreview = null" class="absolute -top-3 -right-3 bg-red-500 border-2 border-gray-900 text-white font-bold px-3 py-1 rounded-full shadow-neo">X</button>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold mb-2">Nama Penerima</label>
+              <input type="text" v-model="penerimaNama" class="w-full border-2 border-gray-900 rounded-xl p-3 font-bold focus:ring-0" />
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold mb-2">Catatan (Opsional)</label>
+              <textarea v-model="catatanDelivery" rows="2" class="w-full border-2 border-gray-900 rounded-xl p-3 font-medium focus:ring-0"></textarea>
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold mb-2">Tanda Tangan Penerima</label>
+              <div class="border-2 border-dashed border-gray-400 h-48 bg-gray-50 rounded-xl relative">
+                <VueSignaturePad width="100%" height="100%" ref="sigPenerima" />
+                <button @click="$refs.sigPenerima.clearSignature()" class="absolute top-2 right-2 text-xs font-bold bg-white border-2 border-gray-900 px-2 py-1 rounded shadow-neo">Hapus</button>
+              </div>
+            </div>
+
+            <button @click="submitDelivery" :disabled="submitting" class="w-full bg-teal-400 border-2 border-gray-900 text-gray-900 font-black px-6 py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all text-lg">
+              {{ submitting ? 'MEMPROSES...' : 'SELESAIKAN PENGIRIMAN' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- DELIVERED (Complete) -->
+        <div v-if="sj.status === 'DELIVERED'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 text-center">
+          <p class="mb-4 font-bold text-gray-600">Pengiriman telah diselesaikan oleh driver. Validasi bukti dan tutup dokumen.</p>
+          <button @click="changeStatus('COMPLETED', 'Dokumen diverifikasi dan ditutup')" :disabled="submitting" class="bg-blue-400 border-2 border-gray-900 text-gray-900 font-black px-8 py-3 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all">
+            MARK AS COMPLETED
+          </button>
+        </div>
+
+        <!-- ================= DATA DISPLAYS ================= -->
+
+        <!-- Signatures Display -->
+        <div v-if="sj.admin_signature || sj.penerima_signature" class="bg-white shadow-neo border-2 border-gray-900 sm:rounded-2xl p-6 sm:p-8 grid grid-cols-1 sm:grid-cols-2 gap-8 text-center">
+          <div v-if="sj.admin_signature" class="bg-gray-50 rounded-2xl p-6 border-2 border-gray-200">
+            <p class="text-sm font-black text-gray-800 mb-4 uppercase tracking-wider">Approved By</p>
+            <img :src="sj.admin_signature" class="mx-auto h-24 object-contain mix-blend-multiply" />
+            <p class="text-xs font-bold text-gray-500 mt-4">{{ formatDate(sj.admin_signed_at) }}</p>
+          </div>
+          <div v-if="sj.penerima_signature" class="bg-gray-50 rounded-2xl p-6 border-2 border-gray-200">
+            <p class="text-sm font-black text-gray-800 mb-4 uppercase tracking-wider">Penerima ({{ sj.penerima_nama }})</p>
+            <img :src="sj.penerima_signature" class="mx-auto h-24 object-contain mix-blend-multiply" />
+            <p class="text-xs font-bold text-gray-500 mt-4">{{ formatDate(sj.bukti_at) }}</p>
+          </div>
+        </div>
+
+        <!-- Proof Display -->
+        <div v-if="sj.bukti_foto_url" class="bg-white shadow-neo border-2 border-gray-900 sm:rounded-2xl p-6 sm:p-8">
+          <h3 class="text-lg font-black text-gray-900 mb-6">Bukti Pengiriman (POD)</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+            <div>
+              <img :src="sj.bukti_foto_url" crossorigin="anonymous" class="rounded-xl border-2 border-gray-900 shadow-neo w-full h-auto max-h-64 object-cover" />
+            </div>
+            <div class="flex flex-col justify-center space-y-4">
+              <div class="bg-teal-50 p-4 rounded-xl border-2 border-teal-600">
+                <p class="text-xs font-bold text-teal-800 uppercase">Waktu Pengiriman</p>
+                <p class="text-sm font-black text-teal-900">{{ formatDate(sj.bukti_at) }}</p>
+              </div>
+              <div class="bg-teal-50 p-4 rounded-xl border-2 border-teal-600">
+                <p class="text-xs font-bold text-teal-800 uppercase">Catatan</p>
+                <p class="text-sm font-bold text-teal-900">{{ sj.catatan_delivery || '-' }}</p>
+              </div>
+              <div class="bg-teal-50 p-4 rounded-xl border-2 border-teal-600">
+                <p class="text-xs font-bold text-teal-800 uppercase">Lokasi GPS</p>
+                <p class="font-mono text-xs font-bold text-teal-900 mt-1">{{ sj.bukti_latitude || 'Tidak ada' }}, {{ sj.bukti_longitude || 'Tidak ada' }}</p>
+                <a v-if="sj.bukti_latitude" :href="`https://www.google.com/maps/search/?api=1&query=${sj.bukti_latitude},${sj.bukti_longitude}`" target="_blank" class="mt-2 inline-block px-3 py-1.5 border-2 border-teal-800 rounded-lg text-xs font-bold text-teal-900 bg-white shadow-[2px_2px_0_rgb(13,148,136)] active:translate-y-0.5 active:shadow-none">Lihat Peta</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Audit Trail -->
+        <div class="bg-white shadow-neo border-2 border-gray-900 sm:rounded-2xl p-6 sm:p-8">
+          <h3 class="text-lg font-black text-gray-900 mb-6">Activity History (Audit Trail)</h3>
+          <div v-if="history.length" class="space-y-4">
+            <div v-for="h in history" :key="h.id" class="flex gap-4 p-4 border-2 border-gray-200 rounded-xl bg-gray-50 items-start">
+              <div class="flex-1">
+                <p class="text-sm font-bold text-gray-900">{{ h.action }}</p>
+                <p class="text-xs font-medium text-gray-500 mt-1">{{ getHistoryUserName(h.actor_id) }} • {{ formatDate(h.created_at) }}</p>
+                <p v-if="h.reason" class="text-xs font-bold text-red-600 mt-2 bg-red-50 p-2 rounded border border-red-200">Alasan: {{ h.reason }}</p>
+              </div>
+              <div class="text-right flex-shrink-0">
+                <span class="text-[10px] font-bold px-2 py-1 rounded bg-gray-200 border border-gray-300 text-gray-600">{{ h.status_before || 'NONE' }}</span>
+                <span class="mx-1 text-gray-400">→</span>
+                <span class="text-[10px] font-bold px-2 py-1 rounded border-2" :class="statusColor(h.status_after)">{{ h.status_after }}</span>
+              </div>
+            </div>
+          </div>
+          <p v-else class="text-sm text-gray-500 font-bold">Belum ada history.</p>
+        </div>
+
       </div>
 
-      <!-- Hidden PDF Template -->
+      <!-- PDF Template -->
       <div class="fixed top-[200vh] left-0 w-[800px] bg-white text-black p-10 font-sans" id="pdf-template">
+        <!-- Kept similar, updated for new fields -->
         <div class="border-b-4 border-gray-900 pb-6 mb-8 text-center">
           <h1 class="text-4xl font-black tracking-tight uppercase">Surat Jalan</h1>
           <p class="text-lg font-bold text-gray-500 mt-2">{{ sj.nomor_dokumen }}</p>
@@ -177,41 +260,26 @@
 
         <div class="grid grid-cols-2 gap-12 text-center mb-12">
           <div>
-            <p class="text-sm font-bold text-gray-900 mb-6">Dibuat Oleh</p>
+            <p class="text-sm font-bold text-gray-900 mb-6">Approved By</p>
             <div v-if="sj.admin_signature" class="h-32 flex items-center justify-center">
               <img :src="sj.admin_signature" class="h-full object-contain" />
             </div>
             <div v-else class="h-32 border-b-2 border-dashed border-gray-400 mx-8"></div>
-            <p class="font-bold text-gray-900 mt-2">Admin</p>
-            <p class="text-xs text-gray-500 font-medium">{{ formatDate(sj.admin_signed_at) || '-' }}</p>
+            <p class="text-xs text-gray-500 font-medium mt-2">{{ formatDate(sj.admin_signed_at) || '-' }}</p>
           </div>
           
           <div>
-            <p class="text-sm font-bold text-gray-900 mb-6">Diterima Oleh</p>
-            <div v-if="sj.supir_signature" class="h-32 flex items-center justify-center">
-              <img :src="sj.supir_signature" class="h-full object-contain" />
+            <p class="text-sm font-bold text-gray-900 mb-6">Penerima ({{ sj.penerima_nama || '____' }})</p>
+            <div v-if="sj.penerima_signature" class="h-32 flex items-center justify-center">
+              <img :src="sj.penerima_signature" class="h-full object-contain" />
             </div>
             <div v-else class="h-32 border-b-2 border-dashed border-gray-400 mx-8"></div>
-            <p class="font-bold text-gray-900 mt-2">Supir ({{ supirName || '____' }})</p>
-            <p class="text-xs text-gray-500 font-medium">{{ formatDate(sj.supir_signed_at) || '-' }}</p>
+            <p class="text-xs text-gray-500 font-medium mt-2">{{ formatDate(sj.bukti_at) || '-' }}</p>
           </div>
         </div>
-
-        <div v-if="sj.status === 'SELESAI'" class="pt-8 border-t-2 border-gray-300">
-          <h3 class="text-lg font-black uppercase tracking-wider mb-6">Lampiran Bukti Pengiriman</h3>
-          <div class="flex gap-8 items-center">
-            <img v-if="sj.bukti_foto_url" :src="sj.bukti_foto_url" crossorigin="anonymous" class="w-48 h-48 object-cover rounded-xl border-2 border-gray-900 shadow-neo" />
-            <div class="flex-1">
-              <p class="text-xs font-bold text-gray-500 uppercase mb-1">Status Akhir</p>
-              <p class="text-lg font-black text-green-600 mb-4">SELESAI</p>
-              
-              <p class="text-xs font-bold text-gray-500 uppercase mb-1">Waktu Sampai</p>
-              <p class="text-base font-bold text-gray-900 mb-4">{{ formatDate(sj.bukti_at) }}</p>
-              
-              <p class="text-xs font-bold text-gray-500 uppercase mb-1">Koordinat GPS</p>
-              <p class="font-mono text-sm font-bold text-gray-900">{{ sj.bukti_latitude }}, {{ sj.bukti_longitude }}</p>
-            </div>
-          </div>
+        
+        <div class="text-xs font-bold text-center mt-12 text-gray-400">
+          Status Dokumen: {{ sj.status }} | Dicetak: {{ new Date().toLocaleString('id-ID') }}
         </div>
       </div>
     </main>
@@ -223,7 +291,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar.vue'
@@ -231,125 +299,58 @@ import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
-const sj = ref(null)
-const loading = ref(true)
-const supirName = ref('')
-const exportingPdf = ref(false)
-const exportingExcel = ref(false)
-const { showToast } = useToast()
 const authStore = useAuthStore()
+const sj = ref(null)
+const history = ref([])
+const loading = ref(true)
+const submitting = ref(false)
+const { showToast } = useToast()
 
-const signaturePad = ref(null)
+const usersList = ref([])
+const supirName = ref('')
+const selectedDriverId = ref(null)
+
+const exportingPdf = ref(false)
+const sigAdmin = ref(null)
+const sigPenerima = ref(null)
 const cameraInput = ref(null)
 const fotoData = ref(null)
 const fotoPreview = ref(null)
-const submitting = ref(false)
+const penerimaNama = ref('')
+const catatanDelivery = ref('')
 
-const terimaTugas = async () => {
-  if (!signaturePad.value) return
-  const { isEmpty, data } = signaturePad.value.saveSignature()
-  if (isEmpty) {
-    showToast('Harap tanda tangan terlebih dahulu!', 'error')
-    return
-  }
+const isAssignedDriver = computed(() => sj.value?.supir_id === authStore.user.id)
 
-  try {
-    submitting.value = true
-    const { error } = await supabase
-      .from('surat_jalan')
-      .update({
-        supir_id: authStore.user.id,
-        supir_signature: data,
-        supir_signed_at: new Date().toISOString(),
-        status: 'DITERIMA SUPIR'
-      })
-      .eq('id', sj.value.id)
-      
-    if (error) throw error
-    showToast('Tugas berhasil diterima!', 'success')
-    await fetchDetail()
-  } catch (err) {
-    showToast('Gagal konfirmasi terima', 'error')
-    console.error(err)
-  } finally {
-    submitting.value = false
+const statusColor = (status) => {
+  const colors = {
+    'DRAFT': 'bg-gray-100 text-gray-800 border-gray-900',
+    'SUBMITTED': 'bg-yellow-100 text-yellow-900 border-yellow-900',
+    'APPROVED': 'bg-green-100 text-green-900 border-green-900',
+    'ASSIGNED': 'bg-orange-100 text-orange-900 border-orange-900',
+    'ACCEPTED': 'bg-indigo-100 text-indigo-900 border-indigo-900',
+    'ON_DELIVERY': 'bg-purple-100 text-purple-900 border-purple-900',
+    'DELIVERED': 'bg-teal-100 text-teal-900 border-teal-900',
+    'COMPLETED': 'bg-blue-100 text-blue-900 border-blue-900',
+    'REJECTED': 'bg-red-100 text-red-900 border-red-900',
+    'CANCELLED': 'bg-gray-300 text-gray-900 border-gray-900'
   }
+  return colors[status] || 'bg-gray-100 text-gray-800 border-gray-900'
 }
 
-const handleFotoUpload = (event) => {
-  const file = event.target.files[0]
-  if (!file) return
-  
-  fotoData.value = file
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    fotoPreview.value = e.target.result
-  }
-  reader.readAsDataURL(file)
+const formatDate = (dateString) => {
+  if (!dateString) return '-'
+  return new Date(dateString).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })
 }
 
-const getGPSLocation = () => {
-  return new Promise((resolve) => {
-    if (!navigator.geolocation) {
-      console.warn('GPS tidak didukung.')
-      return resolve({ lat: null, lng: null })
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      (err) => {
-        console.warn('Gagal mendapatkan lokasi GPS:', err)
-        resolve({ lat: null, lng: null })
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    )
-  })
+const fetchAllUsers = async () => {
+  const { data } = await supabase.from('users').select('*')
+  if (data) usersList.value = data
 }
 
-const selesaiTugas = async () => {
-  if (!fotoData.value) {
-    showToast('Harap ambil foto bukti!', 'error')
-    return
-  }
-
-  try {
-    submitting.value = true
-    
-    const gps = await getGPSLocation()
-    
-    const fileExt = fotoData.value.name.split('.').pop()
-    const fileName = `${sj.value.id}-${Date.now()}.${fileExt}`
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('bukti')
-      .upload(fileName, fotoData.value)
-      
-    let photoUrl = fotoPreview.value
-    if (uploadData && !uploadError) {
-      const { data: publicUrlData } = supabase.storage.from('bukti').getPublicUrl(fileName)
-      photoUrl = publicUrlData.publicUrl
-    }
-
-    const { error } = await supabase
-      .from('surat_jalan')
-      .update({
-        status: 'SELESAI',
-        bukti_foto_url: photoUrl,
-        bukti_latitude: gps.lat,
-        bukti_longitude: gps.lng,
-        bukti_at: new Date().toISOString()
-      })
-      .eq('id', sj.value.id)
-      
-    if (error) throw error
-    showToast('Tugas Selesai!', 'success')
-    await fetchDetail()
-  } catch (err) {
-    showToast(err.message || 'Terjadi kesalahan saat menyelesaikan tugas', 'error')
-    console.error(err)
-  } finally {
-    submitting.value = false
-  }
+const getHistoryUserName = (id) => {
+  const u = usersList.value.find(user => user.id === id)
+  return u ? (u.name || u.email) : 'System'
 }
-
 
 const fetchDetail = async () => {
   try {
@@ -363,9 +364,19 @@ const fetchDetail = async () => {
     sj.value = data
 
     if (data.supir_id) {
-      const { data: supirData } = await supabase.from('users').select('name, email').eq('id', data.supir_id).single()
-      if (supirData) supirName.value = supirData.name || supirData.email
+      const u = usersList.value.find(user => user.id === data.supir_id)
+      if (u) supirName.value = u.name || u.email
     }
+    
+    // Fetch History
+    const { data: historyData } = await supabase
+      .from('sj_history')
+      .select('*')
+      .eq('sj_id', data.id)
+      .order('created_at', { ascending: true })
+    
+    if (historyData) history.value = historyData
+    
   } catch (err) {
     console.error(err)
     showToast('Gagal memuat detail', 'error')
@@ -374,82 +385,194 @@ const fetchDetail = async () => {
   }
 }
 
-const formatDate = (dateString) => {
-  if (!dateString) return '-'
-  return new Date(dateString).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })
+const logHistory = async (action, statusAfter, reason = null) => {
+  await supabase.from('sj_history').insert({
+    sj_id: sj.value.id,
+    actor_id: authStore.user.id,
+    action: action,
+    status_before: sj.value.status,
+    status_after: statusAfter,
+    reason: reason
+  })
+}
+
+const changeStatus = async (newStatus, actionLabel = 'STATUS_CHANGED', reason = null) => {
+  try {
+    submitting.value = true
+    const { error } = await supabase
+      .from('surat_jalan')
+      .update({ status: newStatus, rejection_reason: reason })
+      .eq('id', sj.value.id)
+      
+    if (error) throw error
+    await logHistory(actionLabel, newStatus, reason)
+    showToast('Sukses update status', 'success')
+    await fetchDetail()
+  } catch (err) {
+    showToast('Gagal update status', 'error')
+    console.error(err)
+  } finally {
+    submitting.value = false
+  }
+}
+
+const approveDocument = async () => {
+  if (!sigAdmin.value) return
+  const { isEmpty, data } = sigAdmin.value.saveSignature()
+  if (isEmpty) return showToast('Harap berikan tanda tangan', 'error')
+  
+  try {
+    submitting.value = true
+    const { error } = await supabase
+      .from('surat_jalan')
+      .update({ 
+        status: 'APPROVED', 
+        admin_signature: data, 
+        admin_signed_at: new Date().toISOString() 
+      })
+      .eq('id', sj.value.id)
+      
+    if (error) throw error
+    await logHistory('APPROVED', 'APPROVED')
+    showToast('Dokumen Approved', 'success')
+    await fetchDetail()
+  } catch (err) {
+    showToast('Gagal approve', 'error')
+  } finally {
+    submitting.value = false
+  }
+}
+
+const promptReject = () => {
+  const reason = prompt("Alasan penolakan:")
+  if (reason) changeStatus('REJECTED', 'REJECTED_BY_APPROVER', reason)
+}
+
+const rejectAssignment = () => {
+  const reason = prompt("Alasan menolak tugas:")
+  if (!reason) return
+  
+  // Revert back to APPROVED, remove supir_id
+  supabase.from('surat_jalan')
+    .update({ status: 'APPROVED', supir_id: null })
+    .eq('id', sj.value.id)
+    .then(async ({ error }) => {
+      if (error) throw error
+      await logHistory('ASSIGNMENT_REJECTED', 'APPROVED', reason)
+      showToast('Assignment ditolak', 'success')
+      fetchDetail()
+    })
+}
+
+const assignDriver = async () => {
+  if (!selectedDriverId.value) return
+  try {
+    submitting.value = true
+    const { error } = await supabase
+      .from('surat_jalan')
+      .update({ status: 'ASSIGNED', supir_id: selectedDriverId.value })
+      .eq('id', sj.value.id)
+      
+    if (error) throw error
+    await logHistory('DRIVER_ASSIGNED', 'ASSIGNED')
+    showToast('Driver berhasil di-assign', 'success')
+    await fetchDetail()
+  } catch(err) {
+    showToast('Gagal assign', 'error')
+  } finally {
+    submitting.value = false
+  }
+}
+
+const handleFotoUpload = (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+  fotoData.value = file
+  const reader = new FileReader()
+  reader.onload = (e) => fotoPreview.value = e.target.result
+  reader.readAsDataURL(file)
+}
+
+const getGPSLocation = () => {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) return resolve({ lat: null, lng: null })
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => resolve({ lat: null, lng: null }),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    )
+  })
+}
+
+const submitDelivery = async () => {
+  if (!fotoData.value || !penerimaNama.value) return showToast('Foto dan Nama Penerima wajib diisi', 'error')
+  
+  const { isEmpty, data: sigData } = sigPenerima.value.saveSignature()
+  if (isEmpty) return showToast('Tanda tangan penerima wajib diisi', 'error')
+
+  try {
+    submitting.value = true
+    const gps = await getGPSLocation()
+    
+    const fileExt = fotoData.value.name.split('.').pop()
+    const fileName = `${sj.value.id}-${Date.now()}.${fileExt}`
+    const { data: uploadData, error: uploadError } = await supabase.storage.from('bukti').upload(fileName, fotoData.value)
+    
+    let photoUrl = fotoPreview.value
+    if (uploadData && !uploadError) {
+      const { data: publicUrlData } = supabase.storage.from('bukti').getPublicUrl(fileName)
+      photoUrl = publicUrlData.publicUrl
+    }
+
+    const { error } = await supabase
+      .from('surat_jalan')
+      .update({
+        status: 'DELIVERED',
+        bukti_foto_url: photoUrl,
+        bukti_latitude: gps.lat,
+        bukti_longitude: gps.lng,
+        bukti_at: new Date().toISOString(),
+        penerima_nama: penerimaNama.value,
+        penerima_signature: sigData,
+        catatan_delivery: catatanDelivery.value
+      })
+      .eq('id', sj.value.id)
+      
+    if (error) throw error
+    await logHistory('DELIVERY_FINISHED', 'DELIVERED')
+    showToast('Pengiriman Selesai', 'success')
+    await fetchDetail()
+  } catch (err) {
+    showToast(err.message, 'error')
+  } finally {
+    submitting.value = false
+  }
 }
 
 const exportPdf = async () => {
   const element = document.getElementById('pdf-template')
   if (!element) return
-  
   try {
     exportingPdf.value = true
-    
-    // Lazy load heavy libraries only when button is clicked
-    const [{ jsPDF }, html2canvasModule] = await Promise.all([
-      import('jspdf'),
-      import('html2canvas')
-    ])
-    // Depending on the export structure, html2canvas might be the default export
+    const [{ jsPDF }, html2canvasModule] = await Promise.all([import('jspdf'), import('html2canvas')])
     const html2canvas = html2canvasModule.default || html2canvasModule
-    
-    const canvas = await html2canvas(element, { 
-      scale: 2, 
-      useCORS: true,
-      backgroundColor: '#ffffff'
-    })
+    const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#ffffff' })
     const imgData = canvas.toDataURL('image/jpeg', 0.8)
-    
     const pdf = new jsPDF('p', 'mm', 'a4')
     const pdfWidth = pdf.internal.pageSize.getWidth()
     const pdfHeight = (canvas.height * pdfWidth) / canvas.width
-    
     pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight)
     pdf.save(`${sj.value.nomor_dokumen}.pdf`)
-    showToast('Berhasil mengunduh PDF', 'success')
+    showToast('PDF berhasil didownload', 'success')
   } catch (err) {
-    console.error('PDF Export Error:', err)
-    showToast(`Gagal mengekspor PDF: ${err.message || err}`, 'error')
+    showToast('Gagal ekspor PDF', 'error')
   } finally {
     exportingPdf.value = false
   }
 }
 
-const exportExcel = async () => {
-  try {
-    exportingExcel.value = true
-    
-    // Lazy load xlsx library
-    const XLSX = await import('xlsx')
-    
-    const dataToExport = [{
-      'Nomor Dokumen': sj.value.nomor_dokumen,
-      'Status': sj.value.status,
-      'Tanggal Pengiriman': sj.value.tanggal_pengiriman,
-      'Customer': sj.value.customer,
-      'Data Barang': sj.value.data_barang,
-      'Supir': supirName.value,
-      'Waktu TTD Admin': sj.value.admin_signed_at ? formatDate(sj.value.admin_signed_at) : '-',
-      'Waktu TTD Supir': sj.value.supir_signed_at ? formatDate(sj.value.supir_signed_at) : '-',
-      'Waktu Selesai': sj.value.bukti_at ? formatDate(sj.value.bukti_at) : '-',
-      'Lokasi GPS (Lat, Lng)': sj.value.bukti_latitude ? `${sj.value.bukti_latitude}, ${sj.value.bukti_longitude}` : '-'
-    }]
-    
-    const worksheet = XLSX.utils.json_to_sheet(dataToExport)
-    const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Surat Jalan')
-    XLSX.writeFile(workbook, `${sj.value.nomor_dokumen}.xlsx`)
-    showToast('Berhasil mengunduh Excel', 'success')
-  } catch (err) {
-    console.error('Excel Export Error:', err)
-    showToast('Gagal mengekspor Excel.', 'error')
-  } finally {
-    exportingExcel.value = false
-  }
-}
-
-onMounted(() => {
+onMounted(async () => {
+  await fetchAllUsers()
   fetchDetail()
 })
 </script>
