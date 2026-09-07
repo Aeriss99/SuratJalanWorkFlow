@@ -29,9 +29,9 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
-      path: '/supir',
-      name: 'supir',
-      component: () => import('../views/Supir.vue'),
+      path: '/pengiriman-saya',
+      name: 'pengiriman-saya',
+      component: () => import('../views/PengirimanSaya.vue'),
       meta: { requiresAuth: true }
     }
   ]
@@ -45,7 +45,6 @@ router.beforeEach(async (to, from, next) => {
   }
 
   const isAuthenticated = !!authStore.user
-  const userRole = authStore.userRole
 
   if (to.meta.requiresAuth && !isAuthenticated) {
     return next('/login')
@@ -54,8 +53,6 @@ router.beforeEach(async (to, from, next) => {
   if (to.meta.requiresGuest && isAuthenticated) {
     return next('/')
   }
-
-
 
   next()
 })
