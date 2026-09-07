@@ -3,9 +3,12 @@
     <Navbar />
     
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div class="px-4 py-4 sm:px-0">
+            <div class="px-4 py-4 sm:px-0 flex flex-col gap-2">
         <h1 class="text-2xl font-black text-gray-900 tracking-tight">Pengiriman Saya</h1>
-        <p class="text-sm font-bold text-gray-500 mt-1">Daftar Surat Jalan yang ditugaskan kepada Anda.</p>
+        <div class="flex flex-col sm:flex-row justify-between gap-2">
+           <p class="text-sm font-bold text-gray-500">Daftar Surat Jalan yang ditugaskan kepada Anda.</p>
+           <input type="text" v-model="searchQuery" placeholder="Cari No. SJ / Tujuan..." class="block w-full sm:w-64 px-4 py-2 rounded-xl border-2 border-gray-900 focus:ring-0 focus:border-blue-600 text-sm font-bold shadow-sm" />
+        </div>
       </div>
 
       <div class="mt-4 px-4 sm:px-0 mb-6">
@@ -38,29 +41,25 @@
         <div class="space-y-4">
           <div v-for="sj in filteredList" :key="sj.id" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 overflow-hidden hover:translate-y-[-2px] hover:shadow-neo-strong transition-all">
             <router-link :to="`/surat-jalan/${sj.id}`" class="block">
-              <div class="px-5 py-5 sm:px-6">
-                <div class="flex items-center justify-between mb-3">
-                  <p class="text-lg font-black text-gray-900 truncate">
-                    {{ sj.nomor_dokumen }}
-                  </p>
-                  <div class="ml-2 flex-shrink-0 flex">
-                    <p class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full border-2"
-                       :class="statusColor(sj.status)">
+              <div class="p-4 sm:px-6 sm:py-5 flex flex-col sm:flex-row justify-between gap-3">
+                <div class="flex-1">
+                  <div class="flex items-center justify-between mb-1">
+                    <p class="text-base sm:text-lg font-black text-gray-900 truncate">{{ sj.nomor_dokumen }}</p>
+                    <span class="sm:hidden px-2 py-0.5 text-[10px] font-bold rounded-full border-2" :class="statusColor(sj.status)">
                       {{ getStatusLabel(sj.status) }}
-                    </p>
+                    </span>
+                  </div>
+                  <p class="text-sm font-medium text-gray-600 line-clamp-1">
+                    Tujuan: <span class="font-bold text-gray-900">{{ sj.customer }}</span>
+                  </p>
+                  <div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs font-medium text-gray-500">
+                    <p>Tgl: <span class="font-bold text-gray-800">{{ sj.tanggal_pengiriman }}</span></p>
                   </div>
                 </div>
-                <div class="sm:flex sm:justify-between">
-                  <div class="sm:flex">
-                    <p class="flex items-center text-sm font-medium text-gray-600">
-                      Tujuan: <span class="font-bold text-gray-900 ml-1">{{ sj.customer }}</span>
-                    </p>
-                  </div>
-                  <div class="mt-2 flex items-center text-sm font-medium text-gray-500 sm:mt-0">
-                    <p>
-                      Tgl: <span class="font-bold text-gray-900">{{ sj.tanggal_pengiriman }}</span>
-                    </p>
-                  </div>
+                <div class="hidden sm:flex flex-shrink-0 items-center">
+                  <span class="px-3 py-1 text-xs font-bold rounded-full border-2" :class="statusColor(sj.status)">
+                    {{ getStatusLabel(sj.status) }}
+                  </span>
                 </div>
               </div>
             </router-link>
@@ -97,6 +96,8 @@ const authStore = useAuthStore()
 const myTasks = ref([])
 const loading = ref(true)
 const activeTab = ref('aktif')
+const searchQuery = ref('')
+
 
 const tabs = [
   { id: 'tugas_baru', name: 'Menunggu Diterima', statuses: ['ASSIGNED'] },
@@ -131,8 +132,15 @@ const getTabCount = (tabId) => {
 
 const filteredList = computed(() => {
   const tab = tabs.find(t => t.id === activeTab.value)
-  if (!tab) return myTasks.value
-  return myTasks.value.filter(sj => tab.statuses.includes(sj.status))
+  let list = myTasks.value
+  
+  if (searchQuery.value) {
+    const q = searchQuery.value.toLowerCase()
+    list = list.filter(sj => sj.nomor_dokumen.toLowerCase().includes(q) || sj.customer.toLowerCase().includes(q))
+  }
+  
+  if (!tab) return list
+  return list.filter(sj => tab.statuses.includes(sj.status))
 })
 
 

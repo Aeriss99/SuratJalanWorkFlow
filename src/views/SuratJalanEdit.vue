@@ -87,7 +87,7 @@ const fetchDetail = async () => {
       
     if (error) throw error
     
-    if (!['DRAFT', 'SUBMITTED', 'REJECTED'].includes(data.status)) {
+    if (data.status !== 'ASSIGNED') {
       showToast('Dokumen tidak dapat diedit pada status ini', 'error')
       router.push(`/surat-jalan/${data.id}`)
       return

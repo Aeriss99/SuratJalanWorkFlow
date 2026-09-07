@@ -12,7 +12,7 @@
 
       <div class="mt-4 px-4 sm:px-0">
         <div class="bg-white shadow-neo border-2 border-gray-900 sm:rounded-2xl p-6 sm:p-8">
-          <form @submit.prevent="submitForm('SUBMITTED')" class="space-y-6">
+          <form @submit.prevent="submitForm('ASSIGNED')" class="space-y-6">
             <div>
               <label class="block text-sm font-bold text-gray-800 mb-2">Nomor Dokumen</label>
               <div class="flex gap-4">
@@ -44,14 +44,10 @@
                 class="block w-full px-4 py-3 rounded-xl border-2 border-gray-900 focus:ring-0 focus:border-blue-600 sm:text-sm font-medium transition-colors resize-y"></textarea>
             </div>
 
-            <div class="pt-6 flex gap-4">
-              <button type="button" @click="submitForm('DRAFT')" :disabled="loading"
-                class="flex-1 bg-white border-2 border-gray-900 text-gray-900 font-black py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50 text-base">
-                SIMPAN DRAFT
-              </button>
+            <div class="pt-6">
               <button type="submit" :disabled="loading"
-                class="flex-1 bg-blue-500 border-2 border-gray-900 text-gray-900 font-black py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50 text-base">
-                SUBMIT
+                class="w-full bg-blue-500 border-2 border-gray-900 text-gray-900 font-black py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50 text-base">
+                BUAT SURAT JALAN
               </button>
             </div>
           </form>
@@ -118,7 +114,7 @@ const submitForm = async (status) => {
       status_after: status
     })
 
-    showToast(`Berhasil ${status === 'DRAFT' ? 'menyimpan draft' : 'submit surat jalan'}!`, 'success')
+    showToast('Berhasil membuat surat jalan!', 'success')
     router.push(`/surat-jalan/${data.id}`)
   } catch (err) {
     if (err.code === '23505') {
