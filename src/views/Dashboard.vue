@@ -55,7 +55,7 @@
 
       <div class="mt-4 px-4 sm:px-0">
         <!-- Surat Jalan List -->
-        <div v-if="activeTab !== 'supir'" class="space-y-4">
+        <div class="space-y-4">
           <div v-for="sj in filteredList" :key="sj.id" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 overflow-hidden hover:translate-y-[-2px] hover:shadow-neo-strong transition-all">
             <router-link :to="`/surat-jalan/${sj.id}`" class="block">
               <div class="px-5 py-5 sm:px-6">
@@ -100,33 +100,6 @@
           </div>
         </div>
 
-        <!-- Supir List -->
-        <div v-else class="space-y-4">
-          <div v-for="user in users" :key="user.id" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <p class="text-lg font-bold text-gray-900">{{ user.name || user.email }}</p>
-              <p class="text-sm font-medium text-gray-500">{{ user.email }}</p>
-            </div>
-            <div class="flex items-center gap-4 relative w-full sm:w-auto">
-              <select
-                v-model="user.role"
-                @change="updateRole(user.id, user.role)"
-                class="block w-full sm:w-48 pl-4 pr-10 py-2.5 text-sm font-bold border-2 border-gray-900 bg-white focus:outline-none focus:ring-0 rounded-xl shadow-sm appearance-none cursor-pointer hover:bg-gray-50 transition-colors"
-              >
-                <option value="PENDING">PENDING</option>
-                <option value="ADMIN">ADMIN</option>
-                <option value="SUPIR">SUPIR</option>
-              </select>
-              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-900">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"></path></svg>
-              </div>
-            </div>
-          </div>
-          <div v-if="users.length === 0 && !loading" class="px-4 py-16 text-center bg-white rounded-2xl border-2 border-dashed border-gray-300">
-            <h3 class="mt-2 text-base font-bold text-gray-900">Tidak ada user</h3>
-          </div>
-        </div>
-
         <div v-if="loading" class="px-4 py-12 text-center text-gray-500 font-bold">
             <div class="animate-spin inline-block w-8 h-8 border-4 border-current border-t-transparent text-blue-600 rounded-full mb-3" role="status">
               <span class="sr-only">Loading...</span>
@@ -151,8 +124,7 @@ const tabs = [
   { id: 'semua', name: 'Semua' },
   { id: 'belum_selesai', name: 'Butuh Tindakan' },
   { id: 'diproses', name: 'Diproses Supir' },
-  { id: 'selesai', name: 'Selesai' },
-  { id: 'supir', name: 'Daftar Supir' }
+  { id: 'selesai', name: 'Selesai' }
 ]
 
 
@@ -175,21 +147,7 @@ const fetchUsers = async () => {
   }
 }
 
-const updateRole = async (userId, newRole) => {
-  try {
-    const { error } = await supabase
-      .from('users')
-      .update({ role: newRole })
-      .eq('id', userId)
-      
-    if (error) throw error
-    showToast('Role berhasil diupdate', 'success')
-  } catch (err) {
-    console.error(err)
-    showToast('Gagal update role', 'error')
-    await fetchUsers()
-  }
-}
+
 
 const getSupirName = (supirId) => {
   const user = users.value.find(u => u.id === supirId)
@@ -237,8 +195,6 @@ const filteredList = computed(() => {
 
 
 const getTabCount = (tabId) => {
-  if (tabId === 'supir') return users.value.filter(u => u.role === 'SUPIR').length
-  
   if (tabId === 'semua') return suratJalanList.value.length
 
   
