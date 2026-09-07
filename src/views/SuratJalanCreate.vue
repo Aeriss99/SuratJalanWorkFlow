@@ -12,7 +12,7 @@
 
       <div class="mt-4 px-4 sm:px-0">
         <div class="bg-white shadow-neo border-2 border-gray-900 sm:rounded-2xl p-6 sm:p-8">
-          <form @submit.prevent="submitForm('MENUNGGU REVIEW')" class="space-y-6">
+          <form @submit.prevent="submitForm('SUBMITTED')" class="space-y-6">
             <div>
               <label class="block text-sm font-bold text-gray-800 mb-2">Nomor Dokumen</label>
               <div class="flex gap-4">
@@ -114,7 +114,7 @@ const submitForm = async (status) => {
     await supabase.from('sj_history').insert({
       sj_id: data.id,
       actor_id: authStore.user.id,
-      action: status === 'DRAFT' ? 'DIBUAT (DRAF)' : 'MENUNGGU REVIEW',
+      action: status === 'DRAFT' ? 'DIBUAT (DRAF)' : 'SUBMITTED',
       status_after: status
     })
 

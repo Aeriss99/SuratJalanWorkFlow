@@ -42,7 +42,7 @@ CREATE POLICY "Anyone can insert surat jalan" ON public.surat_jalan FOR INSERT W
 -- Kita mengecek OLD.status (status saat ini di database) sebelum diubah.
 CREATE POLICY "Anyone can update non-final surat jalan" ON public.surat_jalan 
 FOR UPDATE USING (
-    status NOT IN ('SELESAI', 'DIBATALKAN') 
+    status NOT IN ('COMPLETED', 'CANCELLED') 
     AND auth.uid() IS NOT NULL
 );
 

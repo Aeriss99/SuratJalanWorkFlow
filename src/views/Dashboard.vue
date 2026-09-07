@@ -17,19 +17,19 @@
       <div class="px-4 sm:px-0 mb-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div class="bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-4 shadow-sm">
           <p class="text-xs font-bold text-yellow-800 uppercase">Review</p>
-          <p class="text-2xl font-black text-yellow-900">{{ getTabCount('MENUNGGU REVIEW') }}</p>
+          <p class="text-2xl font-black text-yellow-900">{{ getTabCount('SUBMITTED') }}</p>
         </div>
         <div class="bg-orange-50 border-2 border-orange-200 rounded-2xl p-4 shadow-sm">
           <p class="text-xs font-bold text-orange-800 uppercase">Menunggu Supir</p>
-          <p class="text-2xl font-black text-orange-900">{{ getTabCount('MENUNGGU SUPIR') }}</p>
+          <p class="text-2xl font-black text-orange-900">{{ getTabCount('ASSIGNED') }}</p>
         </div>
         <div class="bg-purple-50 border-2 border-purple-200 rounded-2xl p-4 shadow-sm">
           <p class="text-xs font-bold text-purple-800 uppercase">Dalam Perjalanan</p>
-          <p class="text-2xl font-black text-purple-900">{{ getTabCount('DALAM PENGIRIMAN') }}</p>
+          <p class="text-2xl font-black text-purple-900">{{ getTabCount('ON_DELIVERY') }}</p>
         </div>
         <div class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 shadow-sm">
           <p class="text-xs font-bold text-blue-800 uppercase">Selesai</p>
-          <p class="text-2xl font-black text-blue-900">{{ getTabCount('SELESAI') }}</p>
+          <p class="text-2xl font-black text-blue-900">{{ getTabCount('COMPLETED') }}</p>
         </div>
       </div>
 
@@ -86,7 +86,7 @@
                   <div class="ml-2 flex-shrink-0 flex">
                     <p class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full border-2"
                        :class="statusColor(sj.status)">
-                      {{ sj.status }}
+                      {{ getStatusLabel(sj.status) }}
                     </p>
                   </div>
                 </div>
@@ -134,6 +134,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
+import { getStatusLabel, statusColor } from '@/utils/status'
 import Navbar from '@/components/Navbar.vue'
 
 const suratJalanList = ref([])
@@ -143,15 +144,15 @@ const activeTab = ref('semua')
 const tabs = [
   { id: 'semua', name: 'Semua' },
   { id: 'DRAFT', name: 'Draft' },
-  { id: 'MENUNGGU REVIEW', name: 'Menunggu Review' },
-  { id: 'DISETUJUI', name: 'Disetujui' },
-  { id: 'MENUNGGU SUPIR', name: 'Menunggu Supir' },
-  { id: 'DITERIMA SUPIR', name: 'Diterima Supir' },
-  { id: 'DALAM PENGIRIMAN', name: 'Dalam Pengiriman' },
-  { id: 'TERKIRIM', name: 'Terkirim' },
-  { id: 'SELESAI', name: 'Selesai' },
-  { id: 'DITOLAK', name: 'Ditolak' },
-  { id: 'DIBATALKAN', name: 'Dibatalkan' }
+  { id: 'SUBMITTED', name: 'Menunggu Review' },
+  { id: 'APPROVED', name: 'Disetujui' },
+  { id: 'ASSIGNED', name: 'Menunggu Supir' },
+  { id: 'ACCEPTED', name: 'Diterima Supir' },
+  { id: 'ON_DELIVERY', name: 'Dalam Pengiriman' },
+  { id: 'DELIVERED', name: 'Terkirim' },
+  { id: 'COMPLETED', name: 'Selesai' },
+  { id: 'REJECTED', name: 'Ditolak' },
+  { id: 'CANCELLED', name: 'Dibatalkan' }
 ]
 
 
@@ -215,21 +216,6 @@ const getTabCount = (tabId) => {
   return suratJalanList.value.filter(sj => sj.status === tabId).length
 }
 
-const statusColor = (status) => {
-  const colors = {
-    'DRAFT': 'bg-gray-100 text-gray-800 border-gray-900',
-    'MENUNGGU REVIEW': 'bg-yellow-100 text-yellow-900 border-yellow-900',
-    'DISETUJUI': 'bg-green-100 text-green-900 border-green-900',
-    'MENUNGGU SUPIR': 'bg-orange-100 text-orange-900 border-orange-900',
-    'DITERIMA SUPIR': 'bg-indigo-100 text-indigo-900 border-indigo-900',
-    'DALAM PENGIRIMAN': 'bg-purple-100 text-purple-900 border-purple-900',
-    'TERKIRIM': 'bg-teal-100 text-teal-900 border-teal-900',
-    'SELESAI': 'bg-blue-100 text-blue-900 border-blue-900',
-    'DITOLAK': 'bg-red-100 text-red-900 border-red-900',
-    'DIBATALKAN': 'bg-gray-300 text-gray-900 border-gray-900'
-  }
-  return colors[status] || 'bg-gray-100 text-gray-800 border-gray-900'
-}
 
 
 </script>

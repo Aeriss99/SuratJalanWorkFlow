@@ -9,13 +9,13 @@
           <p class="text-sm font-bold text-gray-500 mt-1">{{ sj.nomor_dokumen }}</p>
         </div>
                 <div class="flex flex-wrap gap-3 w-full sm:w-auto">
-          <router-link v-if="['DRAFT', 'MENUNGGU REVIEW', 'DITOLAK'].includes(sj.status)" :to="`/surat-jalan/${sj.id}/edit`" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-gray-900 bg-yellow-100 hover:bg-yellow-200 active:translate-y-0.5 active:shadow-none transition-all">
+          <router-link v-if="['DRAFT', 'SUBMITTED', 'REJECTED'].includes(sj.status)" :to="`/surat-jalan/${sj.id}/edit`" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-gray-900 bg-yellow-100 hover:bg-yellow-200 active:translate-y-0.5 active:shadow-none transition-all">
             Edit
           </router-link>
           <button v-if="sj.status === 'DRAFT'" @click="deleteDocument" :disabled="submitting" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-white bg-red-600 hover:bg-red-700 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
             Hapus
           </button>
-          <button v-if="!['SELESAI', 'DIBATALKAN', 'DITOLAK'].includes(sj.status)" @click="cancelDocument" :disabled="submitting" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-gray-900 bg-red-100 hover:bg-red-200 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
+          <button v-if="!['COMPLETED', 'CANCELLED', 'REJECTED'].includes(sj.status)" @click="cancelDocument" :disabled="submitting" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-gray-900 bg-red-100 hover:bg-red-200 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
             Batalkan
           </button>
           <button @click="exportPdf" :disabled="exportingPdf" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-gray-900 bg-white hover:bg-gray-50 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
@@ -34,7 +34,7 @@
                 <div class="sm:col-span-2">
                   <dt class="text-xs font-bold text-gray-500 uppercase tracking-wider">Status</dt>
                   <dd class="mt-1 text-sm font-bold px-3 py-1 rounded-full border-2 inline-block" :class="statusColor(sj.status)">
-                    {{ sj.status }}
+                    {{ getStatusLabel(sj.status) }}
                   </dd>
                 </div>
                 <div class="sm:col-span-2">
@@ -66,13 +66,13 @@
         <!-- DRAFT -->
         <div v-if="sj.status === 'DRAFT'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6">
           <h3 class="font-black text-lg mb-4">Aksi Dokumen: Draf</h3>
-          <button @click="changeStatus('MENUNGGU REVIEW')" :disabled="submitting" class="w-full sm:w-auto bg-blue-500 border-2 border-gray-900 text-gray-900 font-black px-6 py-3 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all">
+          <button @click="changeStatus('SUBMITTED')" :disabled="submitting" class="w-full sm:w-auto bg-blue-500 border-2 border-gray-900 text-gray-900 font-black px-6 py-3 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all">
             AJUKAN UNTUK REVIEW
           </button>
         </div>
 
         <!-- SUBMITTED (Review) -->
-        <div v-if="sj.status === 'MENUNGGU REVIEW'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6">
+        <div v-if="sj.status === 'SUBMITTED'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6">
           <h3 class="font-black text-lg mb-4">Aksi Dokumen: Review & Persetujuan</h3>
           <div class="mb-6">
             <label class="block text-sm font-bold mb-2">Tanda Tangan Penyetuju</label>
@@ -92,7 +92,7 @@
         </div>
 
         <!-- APPROVED (Assign) -->
-        <div v-if="sj.status === 'DISETUJUI'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6">
+        <div v-if="sj.status === 'APPROVED'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6">
           <h3 class="font-black text-lg mb-4">Aksi Dokumen: Tugaskan Supir</h3>
           <div class="flex flex-col sm:flex-row gap-4 items-end">
             <div class="flex-1 w-full">
@@ -109,10 +109,10 @@
         </div>
 
         <!-- ASSIGNED (Driver Accept/Reject) -->
-        <div v-if="sj.status === 'MENUNGGU SUPIR' && isAssignedDriver" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6">
+        <div v-if="sj.status === 'ASSIGNED' && isAssignedDriver" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6">
           <h3 class="font-black text-lg mb-4">Tugas Baru Ditetapkan Ke Anda</h3>
           <div class="flex flex-col sm:flex-row gap-4">
-            <button @click="changeStatus('DITERIMA SUPIR', 'Menerima penugasan')" :disabled="submitting" class="flex-1 bg-indigo-300 border-2 border-gray-900 text-gray-900 font-black px-6 py-3 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all">
+            <button @click="changeStatus('ACCEPTED', 'Menerima penugasan')" :disabled="submitting" class="flex-1 bg-indigo-300 border-2 border-gray-900 text-gray-900 font-black px-6 py-3 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all">
               TERIMA TUGAS
             </button>
             <button @click="rejectAssignment" :disabled="submitting" class="flex-1 bg-red-300 border-2 border-gray-900 text-gray-900 font-black px-6 py-3 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all">
@@ -120,19 +120,19 @@
             </button>
           </div>
         </div>
-        <div v-if="sj.status === 'MENUNGGU SUPIR' && !isAssignedDriver" class="p-4 bg-orange-50 border-2 border-orange-200 rounded-xl text-orange-800 font-bold text-center">
+        <div v-if="sj.status === 'ASSIGNED' && !isAssignedDriver" class="p-4 bg-orange-50 border-2 border-orange-200 rounded-xl text-orange-800 font-bold text-center">
           Menunggu supir ({{ supirName }}) merespons penugasan ini.
         </div>
 
         <!-- ACCEPTED (Start Delivery) -->
-        <div v-if="sj.status === 'DITERIMA SUPIR' && isAssignedDriver" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 text-center">
-          <button @click="changeStatus('DALAM PENGIRIMAN', 'Mulai perjalanan')" :disabled="submitting" class="w-full bg-purple-400 border-2 border-gray-900 text-gray-900 font-black px-6 py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all text-xl">
+        <div v-if="sj.status === 'ACCEPTED' && isAssignedDriver" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 text-center">
+          <button @click="changeStatus('ON_DELIVERY', 'Mulai perjalanan')" :disabled="submitting" class="w-full bg-purple-400 border-2 border-gray-900 text-gray-900 font-black px-6 py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all text-xl">
             MULAI PENGIRIMAN
           </button>
         </div>
 
         <!-- ON_DELIVERY (Check in / Proof) -->
-        <div v-if="sj.status === 'DALAM PENGIRIMAN' && isAssignedDriver" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 space-y-6">
+        <div v-if="sj.status === 'ON_DELIVERY' && isAssignedDriver" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 space-y-6">
           <h3 class="font-black text-xl text-center uppercase">Penyelesaian Pengiriman (Bukti Pengiriman)</h3>
           
           <div v-if="!fotoData" class="border-2 border-dashed border-gray-400 bg-gray-50 rounded-2xl p-10 text-center cursor-pointer hover:bg-gray-100 transition-colors" @click="$refs.cameraInput.click()">
@@ -171,9 +171,9 @@
         </div>
 
         <!-- DELIVERED (Complete) -->
-        <div v-if="sj.status === 'TERKIRIM'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 text-center">
+        <div v-if="sj.status === 'DELIVERED'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 text-center">
           <p class="mb-4 font-bold text-gray-600">Pengiriman telah diselesaikan oleh supir. Validasi bukti dan tutup dokumen.</p>
-          <button @click="changeStatus('SELESAI', 'Dokumen diverifikasi dan ditutup')" :disabled="submitting" class="bg-blue-400 border-2 border-gray-900 text-gray-900 font-black px-8 py-3 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all">
+          <button @click="changeStatus('COMPLETED', 'Dokumen diverifikasi dan ditutup')" :disabled="submitting" class="bg-blue-400 border-2 border-gray-900 text-gray-900 font-black px-8 py-3 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all">
             TANDAI SELESAI
           </button>
         </div>
@@ -288,7 +288,7 @@
         </div>
         
         <div class="text-xs font-bold text-center mt-12 text-gray-400">
-          Status Dokumen: {{ sj.status }} | Dicetak: {{ new Date().toLocaleString('id-ID') }}
+          Status Dokumen: {{ getStatusLabel(sj.status) }} | Dicetak: {{ new Date().toLocaleString('id-ID') }}
         </div>
       </div>
     </main>
@@ -303,6 +303,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { supabase } from '@/lib/supabase'
+import { getStatusLabel, statusColor } from '@/utils/status'
 import Navbar from '@/components/Navbar.vue'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
@@ -330,21 +331,6 @@ const catatanDelivery = ref('')
 
 const isAssignedDriver = computed(() => sj.value?.supir_id === authStore.user.id)
 
-const statusColor = (status) => {
-  const colors = {
-    'DRAFT': 'bg-gray-100 text-gray-800 border-gray-900',
-    'MENUNGGU REVIEW': 'bg-yellow-100 text-yellow-900 border-yellow-900',
-    'DISETUJUI': 'bg-green-100 text-green-900 border-green-900',
-    'MENUNGGU SUPIR': 'bg-orange-100 text-orange-900 border-orange-900',
-    'DITERIMA SUPIR': 'bg-indigo-100 text-indigo-900 border-indigo-900',
-    'DALAM PENGIRIMAN': 'bg-purple-100 text-purple-900 border-purple-900',
-    'TERKIRIM': 'bg-teal-100 text-teal-900 border-teal-900',
-    'SELESAI': 'bg-blue-100 text-blue-900 border-blue-900',
-    'DITOLAK': 'bg-red-100 text-red-900 border-red-900',
-    'DIBATALKAN': 'bg-gray-300 text-gray-900 border-gray-900'
-  }
-  return colors[status] || 'bg-gray-100 text-gray-800 border-gray-900'
-}
 
 const formatDate = (dateString) => {
   if (!dateString) return '-'
@@ -425,7 +411,7 @@ const cancelDocument = async () => {
   if (!reason) return
   if (!confirm('Peringatan: Dokumen yang dibatalkan tidak bisa dikembalikan. Lanjutkan?')) return
   
-  changeStatus('DIBATALKAN', 'CANCELLED', reason)
+  changeStatus('CANCELLED', 'CANCELLED', reason)
 }
 
 const changeStatusSafe = (newStatus, actionLabel, promptText = null) => {
@@ -465,14 +451,14 @@ const approveDocument = async () => {
     const { error } = await supabase
       .from('surat_jalan')
       .update({ 
-        status: 'DISETUJUI', 
+        status: 'APPROVED', 
         admin_signature: data, 
         admin_signed_at: new Date().toISOString() 
       })
       .eq('id', sj.value.id)
       
     if (error) throw error
-    await logHistory('DISETUJUI', 'DISETUJUI')
+    await logHistory('APPROVED', 'APPROVED')
     showToast('Dokumen Approved', 'success')
     await fetchDetail()
   } catch (err) {
@@ -484,7 +470,7 @@ const approveDocument = async () => {
 
 const promptReject = () => {
   const reason = prompt("Alasan penolakan:")
-  if (reason) changeStatus('DITOLAK', 'TOLAKED_BY_APPROVER', reason)
+  if (reason) changeStatus('REJECTED', 'TOLAKED_BY_APPROVER', reason)
 }
 
 const rejectAssignment = () => {
@@ -493,11 +479,11 @@ const rejectAssignment = () => {
   
   // Revert back to APPROVED, remove supir_id
   supabase.from('surat_jalan')
-    .update({ status: 'DISETUJUI', supir_id: null })
+    .update({ status: 'APPROVED', supir_id: null })
     .eq('id', sj.value.id)
     .then(async ({ error }) => {
       if (error) throw error
-      await logHistory('ASSIGNMENT_TOLAKED', 'DISETUJUI', reason)
+      await logHistory('ASSIGNMENT_TOLAKED', 'APPROVED', reason)
       showToast('Assignment ditolak', 'success')
       fetchDetail()
     })
@@ -510,9 +496,9 @@ const assignDriver = async () => {
     submitting.value = true
     const { data, error } = await supabase
       .from('surat_jalan')
-      .update({ status: 'MENUNGGU SUPIR', supir_id: selectedDriverId.value })
+      .update({ status: 'ASSIGNED', supir_id: selectedDriverId.value })
       .eq('id', sj.value.id)
-      .eq('status', 'DISETUJUI')
+      .eq('status', 'APPROVED')
       .select()
       
     if (error) throw error
@@ -521,7 +507,7 @@ const assignDriver = async () => {
        await fetchDetail()
        return
     }
-    await logHistory('DRIVER_ASSIGNED', 'MENUNGGU SUPIR')
+    await logHistory('DRIVER_ASSIGNED', 'ASSIGNED')
     showToast('Driver berhasil di-assign', 'success')
     await fetchDetail()
   } catch(err) {
@@ -576,7 +562,7 @@ const submitDelivery = async () => {
     const { error } = await supabase
       .from('surat_jalan')
       .update({
-        status: 'TERKIRIM',
+        status: 'DELIVERED',
         bukti_foto_url: photoUrl,
         bukti_latitude: gps.lat,
         bukti_longitude: gps.lng,
@@ -586,10 +572,10 @@ const submitDelivery = async () => {
         catatan_delivery: catatanDelivery.value
       })
       .eq('id', sj.value.id)
-      .eq('status', 'DALAM PENGIRIMAN')
+      .eq('status', 'ON_DELIVERY')
       
     if (error) throw error
-    await logHistory('DELIVERY_FINISHED', 'TERKIRIM')
+    await logHistory('DELIVERY_FINISHED', 'DELIVERED')
     showToast('Pengiriman Selesai', 'success')
     await fetchDetail()
   } catch (err) {
