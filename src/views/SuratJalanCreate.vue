@@ -16,8 +16,8 @@
             <div>
               <label class="block text-sm font-bold text-gray-800 mb-2">Nomor Dokumen</label>
               <div class="flex gap-4">
-                <input type="text" v-model="form.nomor_dokumen" required disabled
-                  class="block w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-gray-50 sm:text-sm font-bold text-gray-500" />
+                <input type="text" v-model="form.nomor_dokumen" required placeholder="Ketik nomor atau klik Generate"
+                  class="block w-full px-4 py-3 rounded-xl border-2 border-gray-900 focus:ring-0 focus:border-blue-600 sm:text-sm font-bold transition-colors" />
                 <button type="button" @click="generateNomor"
                   class="px-4 py-2 border-2 border-gray-900 text-sm font-bold rounded-xl text-gray-900 bg-white hover:bg-gray-50 shadow-[2px_2px_0_rgb(0,0,0)] active:translate-y-0.5 active:shadow-none transition-all">
                   Generate
@@ -89,7 +89,7 @@ const generateNomor = () => {
 
 const submitForm = async (status) => {
   if (!form.nomor_dokumen) {
-    showToast('Harap generate nomor dokumen', 'error')
+    showToast('Harap isi nomor dokumen', 'error')
     return
   }
 
@@ -121,7 +121,11 @@ const submitForm = async (status) => {
     showToast(`Berhasil ${status === 'DRAFT' ? 'menyimpan draft' : 'submit surat jalan'}!`, 'success')
     router.push(`/surat-jalan/${data.id}`)
   } catch (err) {
-    showToast(err.message || 'Terjadi kesalahan', 'error')
+    if (err.code === '23505') {
+      showToast('Nomor dokumen sudah digunakan. Silakan gunakan nomor lain.', 'error')
+    } else {
+      showToast(err.message || 'Terjadi kesalahan', 'error')
+    }
     console.error(err)
   } finally {
     loading.value = false
