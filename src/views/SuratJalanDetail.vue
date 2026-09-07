@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50 pb-12">
+  <div class="min-h-screen bg-gray-50 pb-20 sm:pb-12">
     <Navbar />
     
     <main v-if="sj" class="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -8,7 +8,16 @@
           <h1 class="text-2xl font-black text-gray-900 tracking-tight">Detail Surat Jalan</h1>
           <p class="text-sm font-bold text-gray-500 mt-1">{{ sj.nomor_dokumen }}</p>
         </div>
-        <div class="flex gap-3 w-full sm:w-auto">
+                <div class="flex flex-wrap gap-3 w-full sm:w-auto">
+          <router-link v-if="['DRAFT', 'MENUNGGU REVIEW', 'DITOLAK'].includes(sj.status)" :to="`/surat-jalan/${sj.id}/edit`" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-gray-900 bg-yellow-100 hover:bg-yellow-200 active:translate-y-0.5 active:shadow-none transition-all">
+            Edit
+          </router-link>
+          <button v-if="sj.status === 'DRAFT'" @click="deleteDocument" :disabled="submitting" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-white bg-red-600 hover:bg-red-700 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
+            Hapus
+          </button>
+          <button v-if="!['SELESAI', 'DIBATALKAN', 'DITOLAK'].includes(sj.status)" @click="cancelDocument" :disabled="submitting" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-gray-900 bg-red-100 hover:bg-red-200 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
+            Batalkan
+          </button>
           <button @click="exportPdf" :disabled="exportingPdf" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-gray-900 bg-white hover:bg-gray-50 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
             {{ exportingPdf ? 'Memproses...' : 'Ekspor PDF' }}
           </button>
@@ -396,6 +405,36 @@ const logHistory = async (action, statusAfter, reason = null) => {
   })
 }
 
+const deleteDocument = async () => {
+  if (!confirm('Apakah Anda yakin ingin menghapus Draf ini secara permanen?')) return
+  try {
+    submitting.value = true
+    const { error } = await supabase.from('surat_jalan').delete().eq('id', sj.value.id)
+    if (error) throw error
+    showToast('Dokumen berhasil dihapus', 'success')
+    router.push('/')
+  } catch (err) {
+    showToast('Gagal menghapus dokumen', 'error')
+  } finally {
+    submitting.value = false
+  }
+}
+
+const cancelDocument = async () => {
+  const reason = prompt("Alasan membatalkan dokumen ini:")
+  if (!reason) return
+  if (!confirm('Peringatan: Dokumen yang dibatalkan tidak bisa dikembalikan. Lanjutkan?')) return
+  
+  changeStatus('DIBATALKAN', 'CANCELLED', reason)
+}
+
+const changeStatusSafe = (newStatus, actionLabel, promptText = null) => {
+  if (promptText) {
+    if (!confirm(promptText)) return
+  }
+  changeStatus(newStatus, actionLabel)
+}
+
 const changeStatus = async (newStatus, actionLabel = 'STATUS_CHANGED', reason = null) => {
   try {
     submitting.value = true
@@ -466,15 +505,23 @@ const rejectAssignment = () => {
 
 const assignDriver = async () => {
   if (!selectedDriverId.value) return
+  if (!confirm('Tugaskan driver yang dipilih?')) return
   try {
     submitting.value = true
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('surat_jalan')
       .update({ status: 'MENUNGGU SUPIR', supir_id: selectedDriverId.value })
       .eq('id', sj.value.id)
+      .eq('status', 'DISETUJUI')
+      .select()
       
     if (error) throw error
-    await logHistory('SUPIR_DITUGASKAN', 'MENUNGGU SUPIR')
+    if (data.length === 0) {
+       showToast('Gagal assign: Dokumen sudah berubah status atau diambil orang lain', 'error')
+       await fetchDetail()
+       return
+    }
+    await logHistory('DRIVER_ASSIGNED', 'MENUNGGU SUPIR')
     showToast('Driver berhasil di-assign', 'success')
     await fetchDetail()
   } catch(err) {
@@ -509,6 +556,7 @@ const submitDelivery = async () => {
   
   const { isEmpty, data: sigData } = sigPenerima.value.saveSignature()
   if (isEmpty) return showToast('Tanda tangan penerima wajib diisi', 'error')
+  if (!confirm('Selesaikan pengiriman sekarang?')) return
 
   try {
     submitting.value = true
@@ -518,11 +566,12 @@ const submitDelivery = async () => {
     const fileName = `${sj.value.id}-${Date.now()}.${fileExt}`
     const { data: uploadData, error: uploadError } = await supabase.storage.from('bukti').upload(fileName, fotoData.value)
     
-    let photoUrl = fotoPreview.value
-    if (uploadData && !uploadError) {
-      const { data: publicUrlData } = supabase.storage.from('bukti').getPublicUrl(fileName)
-      photoUrl = publicUrlData.publicUrl
+    if (uploadError) {
+      throw new Error('Gagal mengunggah foto bukti ke server. Pastikan koneksi internet stabil.')
     }
+    
+    const { data: publicUrlData } = supabase.storage.from('bukti').getPublicUrl(fileName)
+    const photoUrl = publicUrlData.publicUrl
 
     const { error } = await supabase
       .from('surat_jalan')
@@ -537,9 +586,10 @@ const submitDelivery = async () => {
         catatan_delivery: catatanDelivery.value
       })
       .eq('id', sj.value.id)
+      .eq('status', 'DALAM PENGIRIMAN')
       
     if (error) throw error
-    await logHistory('PENGIRIMAN_SELESAI', 'TERKIRIM')
+    await logHistory('DELIVERY_FINISHED', 'TERKIRIM')
     showToast('Pengiriman Selesai', 'success')
     await fetchDetail()
   } catch (err) {

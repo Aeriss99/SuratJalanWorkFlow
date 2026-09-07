@@ -29,6 +29,12 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/surat-jalan/:id/edit',
+      name: 'sj-edit',
+      component: () => import('../views/SuratJalanEdit.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/pengiriman-saya',
       name: 'pengiriman-saya',
       component: () => import('../views/PengirimanSaya.vue'),

@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50 pb-12">
+  <div class="min-h-screen bg-gray-50 pb-20 sm:pb-12">
     <Navbar />
     
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -108,7 +108,8 @@ const fetchMyTasks = async () => {
     loading.value = true
     const { data, error } = await supabase
       .from('surat_jalan')
-      .select('*')
+      .select('id, nomor_dokumen, status, customer, tanggal_pengiriman, supir_id')
+      .limit(100)
       .eq('supir_id', authStore.user.id)
       .order('created_at', { ascending: false })
       

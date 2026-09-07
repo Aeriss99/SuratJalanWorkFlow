@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen bg-gray-50 pb-20 sm:pb-12">
     <Navbar />
     
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -11,6 +11,26 @@
         >
           Buat Baru
         </router-link>
+      </div>
+
+            <!-- Quick Stats -->
+      <div class="px-4 sm:px-0 mb-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-4 shadow-sm">
+          <p class="text-xs font-bold text-yellow-800 uppercase">Review</p>
+          <p class="text-2xl font-black text-yellow-900">{{ getTabCount('MENUNGGU REVIEW') }}</p>
+        </div>
+        <div class="bg-orange-50 border-2 border-orange-200 rounded-2xl p-4 shadow-sm">
+          <p class="text-xs font-bold text-orange-800 uppercase">Menunggu Supir</p>
+          <p class="text-2xl font-black text-orange-900">{{ getTabCount('MENUNGGU SUPIR') }}</p>
+        </div>
+        <div class="bg-purple-50 border-2 border-purple-200 rounded-2xl p-4 shadow-sm">
+          <p class="text-xs font-bold text-purple-800 uppercase">Dalam Perjalanan</p>
+          <p class="text-2xl font-black text-purple-900">{{ getTabCount('DALAM PENGIRIMAN') }}</p>
+        </div>
+        <div class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 shadow-sm">
+          <p class="text-xs font-bold text-blue-800 uppercase">Selesai</p>
+          <p class="text-2xl font-black text-blue-900">{{ getTabCount('SELESAI') }}</p>
+        </div>
       </div>
 
       <!-- Tabs Navigasi Status -->
@@ -144,7 +164,8 @@ const fetchUsers = async () => {
   try {
     const { data, error } = await supabase
       .from('users')
-      .select('*')
+      .select('id, nomor_dokumen, status, customer, tanggal_pengiriman, supir_id')
+      .limit(200)
       .order('created_at', { ascending: false })
       
     if (error) throw error
@@ -170,7 +191,8 @@ const fetchSuratJalan = async () => {
   try {
     const { data, error } = await supabase
       .from('surat_jalan')
-      .select('*')
+      .select('id, nomor_dokumen, status, customer, tanggal_pengiriman, supir_id')
+      .limit(200)
       .order('created_at', { ascending: false })
       
     if (error) throw error
