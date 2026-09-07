@@ -1,12 +1,12 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <AdminNavbar />
+    <Navbar />
     
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div class="px-4 py-4 sm:px-0 flex justify-between items-center mt-2">
         <h1 class="text-2xl font-black text-gray-900 tracking-tight">Daftar Surat Jalan</h1>
         <router-link
-          to="/admin/surat-jalan/create"
+          to="/surat-jalan/create"
           class="inline-flex items-center px-4 py-2.5 border-2 border-gray-900 text-sm font-bold rounded-xl shadow-neo text-gray-900 bg-blue-400 hover:bg-blue-500 active:translate-y-0.5 active:shadow-none transition-all"
         >
           Buat Baru
@@ -56,7 +56,7 @@
       <div class="mt-4 px-4 sm:px-0">
         <div class="space-y-4">
           <div v-for="sj in filteredList" :key="sj.id" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 overflow-hidden hover:translate-y-[-2px] hover:shadow-neo-strong transition-all">
-            <router-link :to="`/admin/surat-jalan/${sj.id}`" class="block">
+            <router-link :to="`/surat-jalan/${sj.id}`" class="block">
               <div class="px-5 py-5 sm:px-6">
                 <div class="flex items-center justify-between mb-3">
                   <p class="text-lg font-black text-gray-900 truncate">
@@ -110,7 +110,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
-import AdminNavbar from '@/components/AdminNavbar.vue'
+import Navbar from '@/components/Navbar.vue'
 
 const suratJalanList = ref([])
 const loading = ref(true)

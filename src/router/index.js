@@ -18,45 +18,27 @@ const router = createRouter({
     },
     {
       path: '/',
-      name: 'home',
-      component: () => import('../views/Home.vue'),
+      name: 'dashboard',
+      component: () => import('../views/Dashboard.vue'),
       meta: { requiresAuth: true }
     },
     {
-      path: '/admin',
-      name: 'admin-dashboard',
-      component: () => import('../views/admin/Dashboard.vue'),
-      meta: { requiresAuth: true, role: 'ADMIN' }
+      path: '/users',
+      name: 'users',
+      component: () => import('../views/Users.vue'),
+      meta: { requiresAuth: true }
     },
     {
-      path: '/admin/users',
-      name: 'admin-users',
-      component: () => import('../views/admin/Users.vue'),
-      meta: { requiresAuth: true, role: 'ADMIN' }
+      path: '/surat-jalan/create',
+      name: 'sj-create',
+      component: () => import('../views/SuratJalanCreate.vue'),
+      meta: { requiresAuth: true }
     },
     {
-      path: '/admin/surat-jalan/create',
-      name: 'admin-sj-create',
-      component: () => import('../views/admin/SuratJalanCreate.vue'),
-      meta: { requiresAuth: true, role: 'ADMIN' }
-    },
-    {
-      path: '/admin/surat-jalan/:id',
-      name: 'admin-sj-detail',
-      component: () => import('../views/admin/SuratJalanDetail.vue'),
-      meta: { requiresAuth: true, role: 'ADMIN' }
-    },
-    {
-      path: '/supir',
-      name: 'supir-dashboard',
-      component: () => import('../views/supir/Dashboard.vue'),
-      meta: { requiresAuth: true, role: 'SUPIR' }
-    },
-    {
-      path: '/supir/surat-jalan/:id',
-      name: 'supir-sj-detail',
-      component: () => import('../views/supir/SuratJalanDetail.vue'),
-      meta: { requiresAuth: true, role: 'SUPIR' }
+      path: '/surat-jalan/:id',
+      name: 'sj-detail',
+      component: () => import('../views/SuratJalanDetail.vue'),
+      meta: { requiresAuth: true }
     }
   ]
 })
@@ -64,7 +46,6 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
   
-  // Wait for initial auth check if not done
   if (!authStore.isInitialized) {
     await authStore.initialize()
   }
@@ -80,16 +61,11 @@ router.beforeEach(async (to, from, next) => {
     return next('/')
   }
 
-  if (isAuthenticated && to.path === '/') {
-    if (userRole === 'ADMIN') return next('/admin')
-    if (userRole === 'SUPIR') return next('/supir')
+  if (isAuthenticated && userRole === 'PENDING' && to.path !== '/pending' && to.path !== '/login') {
     return next('/pending')
   }
 
-  if (to.meta.role && to.meta.role !== userRole) {
-    if (userRole === 'PENDING') return next('/pending')
-    if (userRole === 'ADMIN') return next('/admin')
-    if (userRole === 'SUPIR') return next('/supir')
+  if (isAuthenticated && userRole !== 'PENDING' && to.path === '/pending') {
     return next('/')
   }
 

@@ -20,18 +20,6 @@
           <h2 class="text-lg font-semibold text-gray-900">Selamat Datang</h2>
           <p class="text-sm text-gray-500 mt-1 leading-relaxed">Gunakan akun Google Anda untuk masuk ke sistem.</p>
         </div>
-        
-        <!-- Role Hint Badges -->
-        <div class="flex gap-3 mb-8">
-          <div class="flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-gray-50 border border-gray-100">
-            <ShieldCheck class="w-4 h-4 text-blue-600" />
-            <span class="text-xs font-medium text-gray-700">Admin</span>
-          </div>
-          <div class="flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-gray-50 border border-gray-100">
-            <Truck class="w-4 h-4 text-blue-600" />
-            <span class="text-xs font-medium text-gray-700">Supir</span>
-          </div>
-        </div>
 
         <button
           @click="handleLogin"
@@ -63,7 +51,7 @@
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
-import { Package, Truck, ShieldCheck, Loader2 } from 'lucide-vue-next'
+import { Package, Loader2 } from 'lucide-vue-next'
 
 const authStore = useAuthStore()
 const { showToast } = useToast()

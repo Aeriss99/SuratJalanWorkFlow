@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-gray-50 pb-12">
-    <AdminNavbar />
+    <Navbar />
     
     <main v-if="sj" class="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
       <div class="px-4 py-4 sm:px-0 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -74,6 +74,47 @@
                 <div v-else class="h-24 flex items-center justify-center">
                   <span class="text-gray-400 text-sm font-bold">Menunggu TTD</span>
                 </div>
+              </div>
+            </div>
+
+            
+            <!-- Action: TTD & Terima -->
+            <div v-if="sj.status === 'MENUNGGU SUPIR'" class="mt-10 bg-white rounded-2xl border-2 border-gray-900 p-6 shadow-neo">
+              <h3 class="font-black text-gray-900 text-lg mb-2">Tanda Tangan & Terima (Supir)</h3>
+              <p class="text-sm text-gray-500 mb-4 font-medium">Tanda tangani di bawah ini untuk mengonfirmasi penerimaan tugas.</p>
+              
+              <div class="border-2 border-dashed border-gray-400 hover:border-blue-500 rounded-xl bg-gray-50 h-48 mb-5 relative overflow-hidden transition-colors cursor-crosshair">
+                <VueSignaturePad width="100%" height="100%" ref="signaturePad" />
+                <button @click="$refs.signaturePad.clearSignature()" class="absolute top-3 right-3 text-xs font-bold bg-white border-2 border-gray-900 text-gray-800 px-3 py-1.5 rounded-lg shadow-[2px_2px_0_rgb(0,0,0)] active:translate-y-0.5 active:shadow-none transition-all z-10">Hapus</button>
+              </div>
+              
+              <button @click="terimaTugas" :disabled="submitting" class="w-full bg-blue-500 border-2 border-gray-900 text-gray-900 font-black py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50 text-base uppercase tracking-wider flex justify-center items-center gap-2">
+                <span v-if="submitting">Memproses...</span>
+                <span v-else>KONFIRMASI TERIMA</span>
+              </button>
+            </div>
+
+            <!-- Action: Pesanan Sampai -->
+            <div v-if="['DITERIMA SUPIR', 'DALAM PENGIRIMAN'].includes(sj.status)" class="mt-10 bg-white rounded-2xl border-2 border-gray-900 p-6 shadow-neo space-y-5">
+              <h3 class="font-black text-gray-900 text-lg text-center uppercase tracking-wider">Penyelesaian Tugas</h3>
+              
+              <div v-if="!fotoData" class="space-y-4">
+                <div class="border-2 border-dashed border-gray-400 bg-gray-50 rounded-2xl p-10 text-center cursor-pointer hover:bg-gray-100 transition-colors active:scale-95" @click="$refs.cameraInput.click()">
+                  <p class="text-gray-900 font-black mt-2">AMBIL FOTO BUKTI</p>
+                </div>
+                <input type="file" accept="image/*" capture="environment" ref="cameraInput" class="hidden" @change="handleFotoUpload" />
+              </div>
+              
+              <div v-else class="space-y-5">
+                <div class="relative">
+                  <img :src="fotoPreview" class="w-full h-64 object-cover rounded-xl border-2 border-gray-900 shadow-neo" />
+                  <button @click="fotoData = null; fotoPreview = null" class="absolute -top-3 -right-3 bg-red-500 border-2 border-gray-900 text-white px-3 py-1 font-bold rounded-full shadow-neo active:translate-y-0.5 active:shadow-none transition-all">X</button>
+                </div>
+                
+                <button @click="selesaiTugas" :disabled="submitting" class="w-full bg-green-400 border-2 border-gray-900 text-gray-900 font-black py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50 text-lg uppercase tracking-wider flex justify-center items-center gap-2">
+                  <span v-if="submitting">Memproses...</span>
+                  <span v-else>PESANAN SAMPAI</span>
+                </button>
               </div>
             </div>
 
@@ -185,7 +226,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { supabase } from '@/lib/supabase'
-import AdminNavbar from '@/components/AdminNavbar.vue'
+import Navbar from '@/components/Navbar.vue'
 import { useToast } from '@/composables/useToast'
 
 const route = useRoute()
@@ -195,6 +236,113 @@ const supirName = ref('')
 const exportingPdf = ref(false)
 const exportingExcel = ref(false)
 const { showToast } = useToast()
+
+const signaturePad = ref(null)
+const cameraInput = ref(null)
+const fotoData = ref(null)
+const fotoPreview = ref(null)
+const submitting = ref(false)
+
+const terimaTugas = async () => {
+  if (!signaturePad.value) return
+  const { isEmpty, data } = signaturePad.value.saveSignature()
+  if (isEmpty) {
+    showToast('Harap tanda tangan terlebih dahulu!', 'error')
+    return
+  }
+
+  try {
+    submitting.value = true
+    const { error } = await supabase
+      .from('surat_jalan')
+      .update({
+        supir_signature: data,
+        supir_signed_at: new Date().toISOString(),
+        status: 'DITERIMA SUPIR'
+      })
+      .eq('id', sj.value.id)
+      
+    if (error) throw error
+    showToast('Tugas berhasil diterima!', 'success')
+    await fetchDetail()
+  } catch (err) {
+    showToast('Gagal konfirmasi terima', 'error')
+    console.error(err)
+  } finally {
+    submitting.value = false
+  }
+}
+
+const handleFotoUpload = (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+  
+  fotoData.value = file
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    fotoPreview.value = e.target.result
+  }
+  reader.readAsDataURL(file)
+}
+
+const getGPSLocation = () => {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('GPS tidak didukung di perangkat ini.'))
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      (err) => reject(new Error('Gagal mendapatkan lokasi GPS. Pastikan izin lokasi aktif.')),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    )
+  })
+}
+
+const selesaiTugas = async () => {
+  if (!fotoData.value) {
+    showToast('Harap ambil foto bukti!', 'error')
+    return
+  }
+
+  try {
+    submitting.value = true
+    
+    const gps = await getGPSLocation()
+    
+    const fileExt = fotoData.value.name.split('.').pop()
+    const fileName = `${sj.value.id}-${Date.now()}.${fileExt}`
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('bukti')
+      .upload(fileName, fotoData.value)
+      
+    let photoUrl = fotoPreview.value
+    if (uploadData && !uploadError) {
+      const { data: publicUrlData } = supabase.storage.from('bukti').getPublicUrl(fileName)
+      photoUrl = publicUrlData.publicUrl
+    }
+
+    const { error } = await supabase
+      .from('surat_jalan')
+      .update({
+        status: 'SELESAI',
+        bukti_foto_url: photoUrl,
+        bukti_latitude: gps.lat,
+        bukti_longitude: gps.lng,
+        bukti_at: new Date().toISOString()
+      })
+      .eq('id', sj.value.id)
+      
+    if (error) throw error
+    showToast('Tugas Selesai!', 'success')
+    await fetchDetail()
+  } catch (err) {
+    showToast(err.message || 'Terjadi kesalahan saat menyelesaikan tugas', 'error')
+    console.error(err)
+  } finally {
+    submitting.value = false
+  }
+}
+
 
 const fetchDetail = async () => {
   try {

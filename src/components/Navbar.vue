@@ -4,11 +4,11 @@
       <div class="flex justify-between h-16">
         <div class="flex">
           <div class="flex-shrink-0 flex items-center font-black text-xl tracking-tight text-blue-600">
-            SJFlow Admin
+            SJFlow
           </div>
           <div class="hidden sm:-my-px sm:ml-8 sm:flex sm:space-x-4">
             <router-link
-              to="/admin"
+              to="/"
               class="border-transparent text-gray-600 hover:text-gray-900 inline-flex items-center px-3 pt-1 border-b-4 text-sm font-bold transition-colors"
               exact-active-class="!border-gray-900 !text-gray-900"
             >
@@ -18,7 +18,7 @@
               </span>
             </router-link>
             <router-link
-              to="/admin/users"
+              to="/users"
               class="border-transparent text-gray-600 hover:text-gray-900 inline-flex items-center px-3 pt-1 border-b-4 text-sm font-bold transition-colors"
               active-class="!border-gray-900 !text-gray-900"
             >

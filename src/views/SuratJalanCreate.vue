@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-gray-50 pb-12">
-    <AdminNavbar />
+    <Navbar />
     
     <main class="max-w-3xl mx-auto py-6 sm:px-6 lg:px-8">
       <div class="px-4 py-4 sm:px-0 flex justify-between items-center">
@@ -92,7 +92,7 @@ import { ref, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
-import AdminNavbar from '@/components/AdminNavbar.vue'
+import Navbar from '@/components/Navbar.vue'
 import { useToast } from '@/composables/useToast'
 
 const router = useRouter()
@@ -155,7 +155,7 @@ const submitForm = async () => {
 
     if (error) throw error
     showToast('Surat Jalan berhasil dibuat dan diserahkan ke Supir!', 'success')
-    router.push(`/admin/surat-jalan/${data.id}`)
+    router.push(`/surat-jalan/${data.id}`)
   } catch (err) {
     console.error(err)
     showToast(err.message || 'Gagal menyimpan Surat Jalan', 'error')

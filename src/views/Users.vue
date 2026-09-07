@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <AdminNavbar />
+    <Navbar />
     
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div class="px-4 py-4 sm:px-0">
@@ -43,7 +43,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
-import AdminNavbar from '@/components/AdminNavbar.vue'
+import Navbar from '@/components/Navbar.vue'
 import { useToast } from '@/composables/useToast'
 
 const users = ref([])
