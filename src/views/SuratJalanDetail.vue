@@ -145,13 +145,8 @@
         <!-- ================= DATA DISPLAYS ================= -->
 
         <!-- Signatures Display -->
-        <div v-if="sj.admin_signature || sj.penerima_signature" class="bg-white shadow-neo border-2 border-gray-900 sm:rounded-2xl p-6 sm:p-8 grid grid-cols-1 sm:grid-cols-2 gap-8 text-center">
-          <div v-if="sj.admin_signature" class="bg-gray-50 rounded-2xl p-6 border-2 border-gray-200">
-            <p class="text-sm font-black text-gray-800 mb-4 uppercase tracking-wider">Disetujui Oleh</p>
-            <img :src="sj.admin_signature" class="mx-auto h-24 object-contain mix-blend-multiply" />
-            <p class="text-xs font-bold text-gray-500 mt-4">{{ formatDate(sj.admin_signed_at) }}</p>
-          </div>
-          <div v-if="sj.penerima_signature" class="bg-gray-50 rounded-2xl p-6 border-2 border-gray-200">
+        <div v-if="sj.penerima_signature" class="bg-white shadow-neo border-2 border-gray-900 sm:rounded-2xl p-6 sm:p-8 flex justify-center text-center">
+          <div class="bg-gray-50 rounded-2xl p-6 border-2 border-gray-200 w-full max-w-sm">
             <p class="text-sm font-black text-gray-800 mb-4 uppercase tracking-wider">Penerima ({{ sj.penerima_nama }})</p>
             <img :src="sj.penerima_signature" class="mx-auto h-24 object-contain mix-blend-multiply" />
             <p class="text-xs font-bold text-gray-500 mt-4">{{ formatDate(sj.bukti_at) }}</p>
@@ -233,12 +228,11 @@
 
         <div class="grid grid-cols-2 gap-12 text-center mb-12">
           <div>
-            <p class="text-sm font-bold text-gray-900 mb-6">Disetujui Oleh</p>
-            <div v-if="sj.admin_signature" class="h-32 flex items-center justify-center">
-              <img :src="sj.admin_signature" class="h-full object-contain" />
+            <p class="text-sm font-bold text-gray-900 mb-6">Dibuat Oleh</p>
+            <div class="h-32 flex items-end justify-center pb-4">
+               <p class="font-bold text-lg text-gray-800">{{ getHistoryUserName(sj.admin_id) }}</p>
             </div>
-            <div v-else class="h-32 border-b-2 border-dashed border-gray-400 mx-8"></div>
-            <p class="text-xs text-gray-500 font-medium mt-2">{{ formatDate(sj.admin_signed_at) || '-' }}</p>
+            <p class="text-xs text-gray-500 font-medium mt-2">{{ formatDate(sj.created_at) || '-' }}</p>
           </div>
           
           <div>
@@ -413,13 +407,20 @@ const acceptTask = async () => {
   if (!confirm('Terima penugasan pengiriman ini?')) return
   try {
     submitting.value = true
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('surat_jalan')
       .update({ status: 'ACCEPTED', supir_id: authStore.user.id })
       .eq('id', sj.value.id)
       .eq('status', 'ASSIGNED')
+      .select()
       
     if (error) throw error
+    if (data.length === 0) {
+      showToast('Gagal: Tugas sudah diambil oleh orang lain atau dibatalkan', 'error')
+      await fetchDetail()
+      return
+    }
+    
     await logHistory('ACCEPTED', 'ACCEPTED')
     showToast('Tugas berhasil diambil', 'success')
     await fetchDetail()
