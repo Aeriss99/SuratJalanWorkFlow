@@ -23,12 +23,6 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
-      path: '/users',
-      name: 'users',
-      component: () => import('../views/Users.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
       path: '/surat-jalan/create',
       name: 'sj-create',
       component: () => import('../views/SuratJalanCreate.vue'),

@@ -17,13 +17,6 @@
                 {{ activeTasks }} Aktif
               </span>
             </router-link>
-            <router-link
-              to="/users"
-              class="border-transparent text-gray-600 hover:text-gray-900 inline-flex items-center px-3 pt-1 border-b-4 text-sm font-bold transition-colors"
-              active-class="!border-gray-900 !text-gray-900"
-            >
-              Kelola User
-            </router-link>
           </div>
         </div>
         <div class="flex items-center gap-4">
