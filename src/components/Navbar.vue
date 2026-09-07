@@ -7,15 +7,22 @@
             SJFlow
           </div>
           <div class="hidden sm:-my-px sm:ml-8 sm:flex sm:space-x-4">
-            <router-link
+                        <router-link
               to="/"
               class="border-transparent text-gray-600 hover:text-gray-900 inline-flex items-center px-3 pt-1 border-b-4 text-sm font-bold transition-colors"
               exact-active-class="!border-gray-900 !text-gray-900"
             >
               Surat Jalan
               <span v-if="activeTasks > 0" class="ml-2 inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border-2 border-blue-800">
-                {{ activeTasks }} Aktif
+                {{ activeTasks }} Tugas
               </span>
+            </router-link>
+            <router-link
+              to="/supir"
+              class="border-transparent text-gray-600 hover:text-gray-900 inline-flex items-center px-3 pt-1 border-b-4 text-sm font-bold transition-colors"
+              active-class="!border-gray-900 !text-gray-900"
+            >
+              Supir
             </router-link>
           </div>
         </div>

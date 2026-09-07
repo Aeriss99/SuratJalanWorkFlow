@@ -123,15 +123,15 @@ const activeTab = ref('semua')
 const tabs = [
   { id: 'semua', name: 'Semua' },
   { id: 'DRAFT', name: 'Draft' },
-  { id: 'SUBMITTED', name: 'Waiting Review' },
-  { id: 'APPROVED', name: 'Approved' },
-  { id: 'ASSIGNED', name: 'Assigned' },
-  { id: 'ACCEPTED', name: 'Driver Accepted' },
-  { id: 'ON_DELIVERY', name: 'On Delivery' },
-  { id: 'DELIVERED', name: 'Delivered' },
-  { id: 'COMPLETED', name: 'Completed' },
-  { id: 'REJECTED', name: 'Rejected' },
-  { id: 'CANCELLED', name: 'Cancelled' }
+  { id: 'MENUNGGU REVIEW', name: 'Menunggu Review' },
+  { id: 'DISETUJUI', name: 'Disetujui' },
+  { id: 'MENUNGGU SUPIR', name: 'Menunggu Supir' },
+  { id: 'DITERIMA SUPIR', name: 'Diterima Supir' },
+  { id: 'DALAM PENGIRIMAN', name: 'Dalam Pengiriman' },
+  { id: 'TERKIRIM', name: 'Terkirim' },
+  { id: 'SELESAI', name: 'Selesai' },
+  { id: 'DITOLAK', name: 'Ditolak' },
+  { id: 'DIBATALKAN', name: 'Dibatalkan' }
 ]
 
 
@@ -196,15 +196,15 @@ const getTabCount = (tabId) => {
 const statusColor = (status) => {
   const colors = {
     'DRAFT': 'bg-gray-100 text-gray-800 border-gray-900',
-    'SUBMITTED': 'bg-yellow-100 text-yellow-900 border-yellow-900',
-    'APPROVED': 'bg-green-100 text-green-900 border-green-900',
-    'ASSIGNED': 'bg-orange-100 text-orange-900 border-orange-900',
-    'ACCEPTED': 'bg-indigo-100 text-indigo-900 border-indigo-900',
-    'ON_DELIVERY': 'bg-purple-100 text-purple-900 border-purple-900',
-    'DELIVERED': 'bg-teal-100 text-teal-900 border-teal-900',
-    'COMPLETED': 'bg-blue-100 text-blue-900 border-blue-900',
-    'REJECTED': 'bg-red-100 text-red-900 border-red-900',
-    'CANCELLED': 'bg-gray-300 text-gray-900 border-gray-900'
+    'MENUNGGU REVIEW': 'bg-yellow-100 text-yellow-900 border-yellow-900',
+    'DISETUJUI': 'bg-green-100 text-green-900 border-green-900',
+    'MENUNGGU SUPIR': 'bg-orange-100 text-orange-900 border-orange-900',
+    'DITERIMA SUPIR': 'bg-indigo-100 text-indigo-900 border-indigo-900',
+    'DALAM PENGIRIMAN': 'bg-purple-100 text-purple-900 border-purple-900',
+    'TERKIRIM': 'bg-teal-100 text-teal-900 border-teal-900',
+    'SELESAI': 'bg-blue-100 text-blue-900 border-blue-900',
+    'DITOLAK': 'bg-red-100 text-red-900 border-red-900',
+    'DIBATALKAN': 'bg-gray-300 text-gray-900 border-gray-900'
   }
   return colors[status] || 'bg-gray-100 text-gray-800 border-gray-900'
 }

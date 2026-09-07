@@ -27,6 +27,12 @@ const router = createRouter({
       name: 'sj-detail',
       component: () => import('../views/SuratJalanDetail.vue'),
       meta: { requiresAuth: true }
+    },
+    {
+      path: '/supir',
+      name: 'supir',
+      component: () => import('../views/Supir.vue'),
+      meta: { requiresAuth: true }
     }
   ]
 })

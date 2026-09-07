@@ -10,7 +10,7 @@
         </div>
         <div class="flex gap-3 w-full sm:w-auto">
           <button @click="exportPdf" :disabled="exportingPdf" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-gray-900 bg-white hover:bg-gray-50 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
-            {{ exportingPdf ? 'Memproses...' : 'Export PDF' }}
+            {{ exportingPdf ? 'Memproses...' : 'Ekspor PDF' }}
           </button>
         </div>
       </div>
@@ -37,7 +37,7 @@
                   <dd class="mt-1 text-sm font-bold text-gray-900">{{ sj.tanggal_pengiriman }}</dd>
                 </div>
                 <div class="sm:col-span-1">
-                  <dt class="text-xs font-bold text-gray-500 uppercase tracking-wider">Driver Assignment</dt>
+                  <dt class="text-xs font-bold text-gray-500 uppercase tracking-wider">Penugasan Supir</dt>
                   <dd class="mt-1 text-sm font-bold text-gray-900">
                     {{ supirName || 'Belum dipilih' }}
                   </dd>
@@ -56,17 +56,17 @@
         
         <!-- DRAFT -->
         <div v-if="sj.status === 'DRAFT'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6">
-          <h3 class="font-black text-lg mb-4">Aksi Dokumen: Draft</h3>
-          <button @click="changeStatus('SUBMITTED')" :disabled="submitting" class="w-full sm:w-auto bg-blue-500 border-2 border-gray-900 text-gray-900 font-black px-6 py-3 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all">
-            SUBMIT FOR REVIEW
+          <h3 class="font-black text-lg mb-4">Aksi Dokumen: Draf</h3>
+          <button @click="changeStatus('MENUNGGU REVIEW')" :disabled="submitting" class="w-full sm:w-auto bg-blue-500 border-2 border-gray-900 text-gray-900 font-black px-6 py-3 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all">
+            AJUKAN UNTUK REVIEW
           </button>
         </div>
 
         <!-- SUBMITTED (Review) -->
-        <div v-if="sj.status === 'SUBMITTED'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6">
-          <h3 class="font-black text-lg mb-4">Aksi Dokumen: Review & Approval</h3>
+        <div v-if="sj.status === 'MENUNGGU REVIEW'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6">
+          <h3 class="font-black text-lg mb-4">Aksi Dokumen: Review & Persetujuan</h3>
           <div class="mb-6">
-            <label class="block text-sm font-bold mb-2">Tanda Tangan Approver</label>
+            <label class="block text-sm font-bold mb-2">Tanda Tangan Penyetuju</label>
             <div class="border-2 border-dashed border-gray-400 h-48 bg-gray-50 rounded-xl relative">
               <VueSignaturePad width="100%" height="100%" ref="sigAdmin" />
               <button @click="$refs.sigAdmin.clearSignature()" class="absolute top-2 right-2 text-xs font-bold bg-white border-2 border-gray-900 px-2 py-1 rounded shadow-neo">Hapus</button>
@@ -74,36 +74,36 @@
           </div>
           <div class="flex flex-col sm:flex-row gap-4">
             <button @click="approveDocument" :disabled="submitting" class="flex-1 bg-green-400 border-2 border-gray-900 text-gray-900 font-black px-6 py-3 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all">
-              APPROVE DOKUMEN
+              SETUJUI DOKUMEN
             </button>
             <button @click="promptReject" :disabled="submitting" class="flex-1 bg-red-400 border-2 border-gray-900 text-gray-900 font-black px-6 py-3 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all">
-              REJECT
+              TOLAK
             </button>
           </div>
         </div>
 
         <!-- APPROVED (Assign) -->
-        <div v-if="sj.status === 'APPROVED'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6">
-          <h3 class="font-black text-lg mb-4">Aksi Dokumen: Assign Driver</h3>
+        <div v-if="sj.status === 'DISETUJUI'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6">
+          <h3 class="font-black text-lg mb-4">Aksi Dokumen: Tugaskan Supir</h3>
           <div class="flex flex-col sm:flex-row gap-4 items-end">
             <div class="flex-1 w-full">
-              <label class="block text-sm font-bold mb-2">Pilih Driver</label>
+              <label class="block text-sm font-bold mb-2">Pilih Supir</label>
               <select v-model="selectedDriverId" class="block w-full border-2 border-gray-900 rounded-xl p-3 font-bold bg-white focus:ring-0">
-                <option :value="null">-- Pilih Driver --</option>
+                <option :value="null">-- Pilih Supir --</option>
                 <option v-for="u in usersList" :key="u.id" :value="u.id">{{ u.name || u.email }}</option>
               </select>
             </div>
             <button @click="assignDriver" :disabled="submitting || !selectedDriverId" class="w-full sm:w-auto bg-orange-300 border-2 border-gray-900 text-gray-900 font-black px-6 py-3.5 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
-              ASSIGN TUGAS
+              TUGASKAN SUPIR
             </button>
           </div>
         </div>
 
         <!-- ASSIGNED (Driver Accept/Reject) -->
-        <div v-if="sj.status === 'ASSIGNED' && isAssignedDriver" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6">
+        <div v-if="sj.status === 'MENUNGGU SUPIR' && isAssignedDriver" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6">
           <h3 class="font-black text-lg mb-4">Tugas Baru Ditetapkan Ke Anda</h3>
           <div class="flex flex-col sm:flex-row gap-4">
-            <button @click="changeStatus('ACCEPTED', 'Menerima penugasan')" :disabled="submitting" class="flex-1 bg-indigo-300 border-2 border-gray-900 text-gray-900 font-black px-6 py-3 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all">
+            <button @click="changeStatus('DITERIMA SUPIR', 'Menerima penugasan')" :disabled="submitting" class="flex-1 bg-indigo-300 border-2 border-gray-900 text-gray-900 font-black px-6 py-3 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all">
               TERIMA TUGAS
             </button>
             <button @click="rejectAssignment" :disabled="submitting" class="flex-1 bg-red-300 border-2 border-gray-900 text-gray-900 font-black px-6 py-3 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all">
@@ -111,20 +111,20 @@
             </button>
           </div>
         </div>
-        <div v-if="sj.status === 'ASSIGNED' && !isAssignedDriver" class="p-4 bg-orange-50 border-2 border-orange-200 rounded-xl text-orange-800 font-bold text-center">
-          Menunggu driver ({{ supirName }}) merespon penugasan ini.
+        <div v-if="sj.status === 'MENUNGGU SUPIR' && !isAssignedDriver" class="p-4 bg-orange-50 border-2 border-orange-200 rounded-xl text-orange-800 font-bold text-center">
+          Menunggu supir ({{ supirName }}) merespons penugasan ini.
         </div>
 
         <!-- ACCEPTED (Start Delivery) -->
-        <div v-if="sj.status === 'ACCEPTED' && isAssignedDriver" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 text-center">
-          <button @click="changeStatus('ON_DELIVERY', 'Mulai perjalanan')" :disabled="submitting" class="w-full bg-purple-400 border-2 border-gray-900 text-gray-900 font-black px-6 py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all text-xl">
+        <div v-if="sj.status === 'DITERIMA SUPIR' && isAssignedDriver" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 text-center">
+          <button @click="changeStatus('DALAM PENGIRIMAN', 'Mulai perjalanan')" :disabled="submitting" class="w-full bg-purple-400 border-2 border-gray-900 text-gray-900 font-black px-6 py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all text-xl">
             MULAI PENGIRIMAN
           </button>
         </div>
 
         <!-- ON_DELIVERY (Check in / Proof) -->
-        <div v-if="sj.status === 'ON_DELIVERY' && isAssignedDriver" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 space-y-6">
-          <h3 class="font-black text-xl text-center uppercase">Penyelesaian Pengiriman (POD)</h3>
+        <div v-if="sj.status === 'DALAM PENGIRIMAN' && isAssignedDriver" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 space-y-6">
+          <h3 class="font-black text-xl text-center uppercase">Penyelesaian Pengiriman (Bukti Pengiriman)</h3>
           
           <div v-if="!fotoData" class="border-2 border-dashed border-gray-400 bg-gray-50 rounded-2xl p-10 text-center cursor-pointer hover:bg-gray-100 transition-colors" @click="$refs.cameraInput.click()">
             <p class="text-gray-900 font-black text-lg">AMBIL FOTO BUKTI</p>
@@ -162,10 +162,10 @@
         </div>
 
         <!-- DELIVERED (Complete) -->
-        <div v-if="sj.status === 'DELIVERED'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 text-center">
-          <p class="mb-4 font-bold text-gray-600">Pengiriman telah diselesaikan oleh driver. Validasi bukti dan tutup dokumen.</p>
-          <button @click="changeStatus('COMPLETED', 'Dokumen diverifikasi dan ditutup')" :disabled="submitting" class="bg-blue-400 border-2 border-gray-900 text-gray-900 font-black px-8 py-3 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all">
-            MARK AS COMPLETED
+        <div v-if="sj.status === 'TERKIRIM'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 text-center">
+          <p class="mb-4 font-bold text-gray-600">Pengiriman telah diselesaikan oleh supir. Validasi bukti dan tutup dokumen.</p>
+          <button @click="changeStatus('SELESAI', 'Dokumen diverifikasi dan ditutup')" :disabled="submitting" class="bg-blue-400 border-2 border-gray-900 text-gray-900 font-black px-8 py-3 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all">
+            TANDAI SELESAI
           </button>
         </div>
 
@@ -174,7 +174,7 @@
         <!-- Signatures Display -->
         <div v-if="sj.admin_signature || sj.penerima_signature" class="bg-white shadow-neo border-2 border-gray-900 sm:rounded-2xl p-6 sm:p-8 grid grid-cols-1 sm:grid-cols-2 gap-8 text-center">
           <div v-if="sj.admin_signature" class="bg-gray-50 rounded-2xl p-6 border-2 border-gray-200">
-            <p class="text-sm font-black text-gray-800 mb-4 uppercase tracking-wider">Approved By</p>
+            <p class="text-sm font-black text-gray-800 mb-4 uppercase tracking-wider">Disetujui Oleh</p>
             <img :src="sj.admin_signature" class="mx-auto h-24 object-contain mix-blend-multiply" />
             <p class="text-xs font-bold text-gray-500 mt-4">{{ formatDate(sj.admin_signed_at) }}</p>
           </div>
@@ -212,7 +212,7 @@
 
         <!-- Audit Trail -->
         <div class="bg-white shadow-neo border-2 border-gray-900 sm:rounded-2xl p-6 sm:p-8">
-          <h3 class="text-lg font-black text-gray-900 mb-6">Activity History (Audit Trail)</h3>
+          <h3 class="text-lg font-black text-gray-900 mb-6">Riwayat Aktivitas (Audit Trail)</h3>
           <div v-if="history.length" class="space-y-4">
             <div v-for="h in history" :key="h.id" class="flex gap-4 p-4 border-2 border-gray-200 rounded-xl bg-gray-50 items-start">
               <div class="flex-1">
@@ -260,7 +260,7 @@
 
         <div class="grid grid-cols-2 gap-12 text-center mb-12">
           <div>
-            <p class="text-sm font-bold text-gray-900 mb-6">Approved By</p>
+            <p class="text-sm font-bold text-gray-900 mb-6">Disetujui Oleh</p>
             <div v-if="sj.admin_signature" class="h-32 flex items-center justify-center">
               <img :src="sj.admin_signature" class="h-full object-contain" />
             </div>
@@ -324,15 +324,15 @@ const isAssignedDriver = computed(() => sj.value?.supir_id === authStore.user.id
 const statusColor = (status) => {
   const colors = {
     'DRAFT': 'bg-gray-100 text-gray-800 border-gray-900',
-    'SUBMITTED': 'bg-yellow-100 text-yellow-900 border-yellow-900',
-    'APPROVED': 'bg-green-100 text-green-900 border-green-900',
-    'ASSIGNED': 'bg-orange-100 text-orange-900 border-orange-900',
-    'ACCEPTED': 'bg-indigo-100 text-indigo-900 border-indigo-900',
-    'ON_DELIVERY': 'bg-purple-100 text-purple-900 border-purple-900',
-    'DELIVERED': 'bg-teal-100 text-teal-900 border-teal-900',
-    'COMPLETED': 'bg-blue-100 text-blue-900 border-blue-900',
-    'REJECTED': 'bg-red-100 text-red-900 border-red-900',
-    'CANCELLED': 'bg-gray-300 text-gray-900 border-gray-900'
+    'MENUNGGU REVIEW': 'bg-yellow-100 text-yellow-900 border-yellow-900',
+    'DISETUJUI': 'bg-green-100 text-green-900 border-green-900',
+    'MENUNGGU SUPIR': 'bg-orange-100 text-orange-900 border-orange-900',
+    'DITERIMA SUPIR': 'bg-indigo-100 text-indigo-900 border-indigo-900',
+    'DALAM PENGIRIMAN': 'bg-purple-100 text-purple-900 border-purple-900',
+    'TERKIRIM': 'bg-teal-100 text-teal-900 border-teal-900',
+    'SELESAI': 'bg-blue-100 text-blue-900 border-blue-900',
+    'DITOLAK': 'bg-red-100 text-red-900 border-red-900',
+    'DIBATALKAN': 'bg-gray-300 text-gray-900 border-gray-900'
   }
   return colors[status] || 'bg-gray-100 text-gray-800 border-gray-900'
 }
@@ -426,14 +426,14 @@ const approveDocument = async () => {
     const { error } = await supabase
       .from('surat_jalan')
       .update({ 
-        status: 'APPROVED', 
+        status: 'DISETUJUI', 
         admin_signature: data, 
         admin_signed_at: new Date().toISOString() 
       })
       .eq('id', sj.value.id)
       
     if (error) throw error
-    await logHistory('APPROVED', 'APPROVED')
+    await logHistory('DISETUJUI', 'DISETUJUI')
     showToast('Dokumen Approved', 'success')
     await fetchDetail()
   } catch (err) {
@@ -445,7 +445,7 @@ const approveDocument = async () => {
 
 const promptReject = () => {
   const reason = prompt("Alasan penolakan:")
-  if (reason) changeStatus('REJECTED', 'REJECTED_BY_APPROVER', reason)
+  if (reason) changeStatus('DITOLAK', 'TOLAKED_BY_APPROVER', reason)
 }
 
 const rejectAssignment = () => {
@@ -454,11 +454,11 @@ const rejectAssignment = () => {
   
   // Revert back to APPROVED, remove supir_id
   supabase.from('surat_jalan')
-    .update({ status: 'APPROVED', supir_id: null })
+    .update({ status: 'DISETUJUI', supir_id: null })
     .eq('id', sj.value.id)
     .then(async ({ error }) => {
       if (error) throw error
-      await logHistory('ASSIGNMENT_REJECTED', 'APPROVED', reason)
+      await logHistory('ASSIGNMENT_TOLAKED', 'DISETUJUI', reason)
       showToast('Assignment ditolak', 'success')
       fetchDetail()
     })
@@ -470,11 +470,11 @@ const assignDriver = async () => {
     submitting.value = true
     const { error } = await supabase
       .from('surat_jalan')
-      .update({ status: 'ASSIGNED', supir_id: selectedDriverId.value })
+      .update({ status: 'MENUNGGU SUPIR', supir_id: selectedDriverId.value })
       .eq('id', sj.value.id)
       
     if (error) throw error
-    await logHistory('DRIVER_ASSIGNED', 'ASSIGNED')
+    await logHistory('SUPIR_DITUGASKAN', 'MENUNGGU SUPIR')
     showToast('Driver berhasil di-assign', 'success')
     await fetchDetail()
   } catch(err) {
@@ -527,7 +527,7 @@ const submitDelivery = async () => {
     const { error } = await supabase
       .from('surat_jalan')
       .update({
-        status: 'DELIVERED',
+        status: 'TERKIRIM',
         bukti_foto_url: photoUrl,
         bukti_latitude: gps.lat,
         bukti_longitude: gps.lng,
@@ -539,7 +539,7 @@ const submitDelivery = async () => {
       .eq('id', sj.value.id)
       
     if (error) throw error
-    await logHistory('DELIVERY_FINISHED', 'DELIVERED')
+    await logHistory('PENGIRIMAN_SELESAI', 'TERKIRIM')
     showToast('Pengiriman Selesai', 'success')
     await fetchDetail()
   } catch (err) {
