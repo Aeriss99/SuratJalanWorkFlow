@@ -117,7 +117,7 @@ const submitForm = async () => {
     })
 
     showToast('Berhasil membuat surat jalan!', 'success')
-    router.push(`/pengiriman-saya`)
+    router.push(`/surat-jalan/${data.id}`)
   } catch (err) {
     if (err.code === '23505') {
       showToast('Nomor dokumen sudah digunakan. Silakan gunakan nomor lain.', 'error')

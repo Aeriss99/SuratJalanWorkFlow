@@ -25,9 +25,6 @@
               <router-link to="/surat-jalan/create" class="border-transparent text-gray-600 hover:text-gray-900 inline-flex items-center px-3 pt-1 border-b-4 text-sm font-bold transition-colors" active-class="!border-gray-900 !text-gray-900">
                 Buat Baru
               </router-link>
-              <router-link to="/pengiriman-saya" class="border-transparent text-gray-600 hover:text-gray-900 inline-flex items-center px-3 pt-1 border-b-4 text-sm font-bold transition-colors" active-class="!border-gray-900 !text-gray-900">
-                Pengiriman Saya
-              </router-link>
             </div>
           </div>
           <div class="hidden sm:flex items-center gap-4">
@@ -52,9 +49,6 @@
           </router-link>
           <router-link to="/surat-jalan/create" @click="isMobileMenuOpen = false" class="block px-4 py-3 rounded-xl border-2 border-transparent font-bold text-gray-700 hover:bg-gray-100 active:border-gray-900 transition-all" active-class="bg-blue-50 text-blue-800 border-blue-800">
             Buat Surat Jalan
-          </router-link>
-          <router-link to="/pengiriman-saya" @click="isMobileMenuOpen = false" class="block px-4 py-3 rounded-xl border-2 border-transparent font-bold text-gray-700 hover:bg-gray-100 active:border-gray-900 transition-all" active-class="bg-blue-50 text-blue-800 border-blue-800">
-            Pengiriman Saya
           </router-link>
         </div>
         <div class="px-4 border-t-2 border-gray-100 pt-4">
