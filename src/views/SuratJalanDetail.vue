@@ -195,7 +195,7 @@
       </div>
 
       <!-- PDF Template -->
-      <div style="display: none; width: 800px;" class="bg-white text-black p-10 font-sans" id="pdf-template">
+      <div style="position: absolute; top: -9999px; left: -9999px; width: 800px;" class="bg-white text-black p-10 font-sans" id="pdf-template">
         <!-- Kept similar, updated for new fields -->
         <div class="border-b-4 border-gray-900 pb-6 mb-8 text-center">
           <h1 class="text-4xl font-black tracking-tight uppercase">Surat Jalan</h1>
@@ -624,17 +624,8 @@ const submitDelivery = async () => {
 }
 
 const exportPdf = async () => {
-  // Pindahkan elemen ke layar sejenak agar html2canvas bisa membaca ukurannya
   const element = document.getElementById('pdf-template')
   if (!element) return
-  
-  // Trik: Tampilkan elemen, render, lalu sembunyikan lagi
-  element.style.position = 'absolute'
-  element.style.left = '0'
-  element.style.top = '0'
-  element.style.zIndex = '-50'
-  element.style.display = 'block'
-  await nextTick()
   
   try {
     exportingPdf.value = true
@@ -650,7 +641,6 @@ const exportPdf = async () => {
     console.error("Error Export PDF:", err)
     showToast('Gagal ekspor PDF: ' + (err.message || 'Error'), 'error')
   } finally {
-    element.style.display = 'none'
     exportingPdf.value = false
   }
 }
