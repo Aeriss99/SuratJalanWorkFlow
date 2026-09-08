@@ -507,7 +507,7 @@ const changeStatus = async (newStatus, actionLabel = 'STATUS_CHANGED', reason = 
     if (error) throw error
     await logHistory(actionLabel, newStatus, reason)
     showToast('Sukses update status', 'success')
-    await fetchDetail()
+    router.push('/')
   } catch (err) {
     showToast('Gagal update status', 'error')
     console.error(err)
@@ -599,7 +599,7 @@ const submitDelivery = async () => {
 
     await logHistory('DELIVERY_FINISHED', 'DELIVERED')
     showToast('Pengiriman Selesai', 'success')
-    await fetchDetail()
+    router.push('/')
       } catch (err) {
         showToast(err.message, 'error')
       } finally {
