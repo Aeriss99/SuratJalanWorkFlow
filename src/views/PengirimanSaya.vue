@@ -123,7 +123,7 @@ const fetchMyTasks = async () => {
     loading.value = true
     const { data, error } = await supabase
       .from('surat_jalan')
-      .select('id, nomor_dokumen, status, customer, tanggal_pengiriman, supir_id')
+      .select('id, nomor_dokumen, status, customer, tanggal_pengiriman, supir_id, created_at')
       .limit(100)
       .eq('supir_id', authStore.user.id)
       .order('created_at', { ascending: false })
@@ -152,8 +152,18 @@ const filteredList = computed(() => {
     list = list.filter(sj => sj.nomor_dokumen.toLowerCase().includes(q) || sj.customer.toLowerCase().includes(q))
   }
   
-  if (!tab) return list
-  return list.filter(sj => tab.statuses.includes(sj.status))
+  if (tab) {
+    list = list.filter(sj => tab.statuses.includes(sj.status))
+  }
+
+  // Filter 30 hari untuk tab "Riwayat Selesai" jika tidak ada pencarian
+  if (activeTab.value === 'selesai' && !searchQuery.value) {
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    list = list.filter(sj => new Date(sj.created_at) >= thirtyDaysAgo)
+  }
+
+  return list
 })
 
 

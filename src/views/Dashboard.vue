@@ -177,7 +177,7 @@ const fetchSuratJalan = async () => {
   try {
     const { data, error } = await supabase
       .from('surat_jalan')
-      .select('id, nomor_dokumen, status, customer, tanggal_pengiriman, supir_id')
+      .select('id, nomor_dokumen, status, customer, tanggal_pengiriman, supir_id, created_at')
       .limit(200)
       .order('created_at', { ascending: false })
       
@@ -199,8 +199,18 @@ const filteredList = computed(() => {
     list = list.filter(sj => sj.nomor_dokumen.toLowerCase().includes(q) || sj.customer.toLowerCase().includes(q))
   }
   
-  if (activeTab.value === 'semua') return list
-  return list.filter(sj => sj.status === activeTab.value)
+  if (activeTab.value !== 'semua') {
+    list = list.filter(sj => sj.status === activeTab.value)
+  }
+
+  // Filter 30 hari untuk status Selesai jika tidak ada pencarian
+  if (activeTab.value === 'COMPLETED' && !searchQuery.value) {
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    list = list.filter(sj => new Date(sj.created_at) >= thirtyDaysAgo)
+  }
+  
+  return list
 })
 
 const getTabCount = (tabId) => {

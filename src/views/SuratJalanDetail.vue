@@ -12,14 +12,17 @@
           <router-link v-if="['DRAFT', 'ASSIGNED'].includes(sj.status)" :to="`/surat-jalan/${sj.id}/edit`" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-gray-900 bg-yellow-100 hover:bg-yellow-200 active:translate-y-0.5 active:shadow-none transition-all">
             Edit
           </router-link>
-          <button v-if="sj.status === 'DRAFT'" @click="deleteDocument" :disabled="submitting" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-white bg-red-600 hover:bg-red-700 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
+          <button v-if="['DRAFT', 'COMPLETED'].includes(sj.status) && isAdmin" @click="deleteDocument" :disabled="submitting" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-white bg-red-600 hover:bg-red-700 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
             Hapus
           </button>
-          <button v-if="!['COMPLETED', 'CANCELLED', 'REJECTED'].includes(sj.status)" @click="cancelDocument" :disabled="submitting" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-gray-900 bg-red-100 hover:bg-red-200 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
+          <button v-if="!['CANCELLED', 'REJECTED'].includes(sj.status) && isAdmin" @click="cancelDocument" :disabled="submitting" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-gray-900 bg-red-100 hover:bg-red-200 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
             Batalkan
           </button>
           <button @click="exportPdf" :disabled="exportingPdf" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-gray-900 bg-white hover:bg-gray-50 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
             {{ exportingPdf ? 'Memproses...' : 'Ekspor PDF' }}
+          </button>
+          <button v-if="sj.status === 'COMPLETED' || sj.status === 'DELIVERED'" @click="exportExcel" :disabled="exportingExcel" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-green-700 shadow-neo text-sm font-bold rounded-xl text-green-900 bg-green-100 hover:bg-green-200 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
+            {{ exportingExcel ? 'Memproses...' : 'Ekspor Excel' }}
           </button>
         </div>
       </div>
@@ -279,6 +282,7 @@ const supirName = ref('')
 const selectedDriverId = ref(null)
 
 const exportingPdf = ref(false)
+const exportingExcel = ref(false)
 const sigAdmin = ref(null)
 const sigPenerima = ref(null)
 const cameraInput = ref(null)
@@ -288,6 +292,10 @@ const penerimaNama = ref('')
 const catatanDelivery = ref('')
 
 const isAssignedDriver = computed(() => sj.value?.supir_id === authStore.user.id)
+const isAdmin = computed(() => {
+  if (!sj.value) return false
+  return sj.value.admin_id === authStore.user.id || authStore.user.id !== sj.value.supir_id
+})
 
 
 const formatDate = (dateString) => {
@@ -565,6 +573,49 @@ const exportPdf = async () => {
     showToast('Gagal ekspor PDF', 'error')
   } finally {
     exportingPdf.value = false
+  }
+}
+
+const exportExcel = async () => {
+  try {
+    exportingExcel.value = true
+    const XLSX = await import('xlsx')
+    
+    // Siapkan data untuk excel
+    const excelData = [
+      ['SURAT JALAN'],
+      [''],
+      ['Nomor Dokumen', sj.value.nomor_dokumen],
+      ['Customer / Tujuan', sj.value.customer],
+      ['Tanggal Pengiriman', sj.value.tanggal_pengiriman],
+      ['Status', sj.value.status],
+      [''],
+      ['DATA BARANG'],
+      [sj.value.data_barang],
+      [''],
+      ['INFORMASI PENERIMA'],
+      ['Nama Penerima', sj.value.penerima_nama || '-'],
+      ['Waktu Diterima', formatDate(sj.value.bukti_at)],
+      ['Catatan Pengiriman', sj.value.catatan_delivery || '-'],
+      ['Lokasi (Lat, Lng)', `${sj.value.bukti_latitude || '-'}, ${sj.value.bukti_longitude || '-'}`],
+      [''],
+      ['Dibuat Oleh', getHistoryUserName(sj.value.admin_id)],
+      ['Petugas Pengiriman', supirName.value]
+    ]
+
+    const ws = XLSX.utils.aoa_to_sheet(excelData)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Surat Jalan')
+    
+    // Mengatur lebar kolom agar rapi
+    ws['!cols'] = [{ wch: 20 }, { wch: 40 }]
+
+    XLSX.writeFile(wb, `${sj.value.nomor_dokumen}.xlsx`)
+    showToast('Excel berhasil didownload', 'success')
+  } catch (err) {
+    showToast('Gagal ekspor Excel', 'error')
+  } finally {
+    exportingExcel.value = false
   }
 }
 
