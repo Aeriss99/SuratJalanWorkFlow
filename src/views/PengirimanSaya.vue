@@ -12,29 +12,42 @@
       </div>
 
       <div class="mt-4 px-4 sm:px-0 mb-6">
-        <nav class="flex space-x-2 overflow-x-auto pb-2" aria-label="Tabs">
-          <button
-            v-for="tab in tabs"
-            :key="tab.id"
-            @click="activeTab = tab.id"
-            :class="[
-              activeTab === tab.id
-                ? 'bg-gray-900 text-white shadow-neo translate-y-[-2px]'
-                : 'bg-white text-gray-600 border-2 border-gray-900 hover:bg-gray-50',
-              'px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center whitespace-nowrap'
-            ]"
-          >
-            {{ tab.name }}
-            <span 
+        <div class="sm:hidden">
+          <label for="tabs" class="sr-only">Pilih Tab</label>
+          <div class="relative">
+            <select id="tabs" v-model="activeTab" class="block w-full rounded-xl border-2 border-gray-900 py-3 pl-4 pr-10 text-base font-bold focus:border-blue-500 focus:outline-none sm:text-sm bg-white shadow-neo appearance-none">
+              <option v-for="tab in tabs" :key="tab.id" :value="tab.id">{{ tab.name }} ({{ getTabCount(tab.id) }})</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-900">
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"></path></svg>
+            </div>
+          </div>
+        </div>
+        <div class="hidden sm:block">
+          <nav class="flex space-x-2 overflow-x-auto pb-2" aria-label="Tabs">
+            <button
+              v-for="tab in tabs"
+              :key="tab.id"
+              @click="activeTab = tab.id"
               :class="[
-                activeTab === tab.id ? 'bg-white text-gray-900' : 'bg-gray-100 text-gray-900 border border-gray-900',
-                'ml-2 rounded-full py-0.5 px-2.5 text-xs font-bold transition-colors'
+                activeTab === tab.id
+                  ? 'bg-gray-900 text-white shadow-neo translate-y-[-2px]'
+                  : 'bg-white text-gray-600 border-2 border-gray-900 hover:bg-gray-50',
+                'px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center whitespace-nowrap'
               ]"
             >
-              {{ getTabCount(tab.id) }}
-            </span>
-          </button>
-        </nav>
+              {{ tab.name }}
+              <span 
+                :class="[
+                  activeTab === tab.id ? 'bg-white text-gray-900' : 'bg-gray-100 text-gray-900 border border-gray-900',
+                  'ml-2 rounded-full py-0.5 px-2.5 text-xs font-bold transition-colors'
+                ]"
+              >
+                {{ getTabCount(tab.id) }}
+              </span>
+            </button>
+          </nav>
+        </div>
       </div>
 
       <div class="px-4 sm:px-0">
