@@ -12,7 +12,7 @@
 
       <div class="mt-4 px-4 sm:px-0">
         <div class="bg-white shadow-neo border-2 border-gray-900 sm:rounded-2xl p-6 sm:p-8">
-          <form @submit.prevent="submitForm('DRAFT')" class="space-y-6">
+          <form @submit.prevent="submitForm" class="space-y-6">
             <div>
               <label class="block text-sm font-bold text-gray-800 mb-2">Nomor Dokumen</label>
               <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
@@ -47,7 +47,7 @@
             <div class="pt-6">
               <button type="submit" :disabled="loading"
                 class="w-full bg-blue-500 border-2 border-gray-900 text-gray-900 font-black py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50 text-base">
-                BUAT SURAT JALAN BARU (DRAF)
+                BUAT & MULAI PENGIRIMAN
               </button>
             </div>
           </form>
@@ -83,7 +83,7 @@ const generateNomor = () => {
   form.nomor_dokumen = `SJ-${new Date().getFullYear()}-${timestamp}`
 }
 
-const submitForm = async (status) => {
+const submitForm = async () => {
   if (!form.nomor_dokumen) {
     showToast('Harap isi nomor dokumen', 'error')
     return
@@ -99,7 +99,8 @@ const submitForm = async (status) => {
         customer: form.customer,
         data_barang: form.data_barang,
         admin_id: authStore.user.id,
-        status: status
+        supir_id: authStore.user.id,
+        status: 'ON_DELIVERY'
       })
       .select()
       .single()
@@ -110,12 +111,13 @@ const submitForm = async (status) => {
     await supabase.from('sj_history').insert({
       sj_id: data.id,
       actor_id: authStore.user.id,
-      action: 'CREATED_DRAFT',
-      status_after: status
+      action: 'CREATED_AND_STARTED',
+      status_after: 'ON_DELIVERY',
+      reason: 'Dibuat dan langsung dijalankan'
     })
 
     showToast('Berhasil membuat surat jalan!', 'success')
-    router.push(`/surat-jalan/${data.id}`)
+    router.push(`/pengiriman-saya`)
   } catch (err) {
     if (err.code === '23505') {
       showToast('Nomor dokumen sudah digunakan. Silakan gunakan nomor lain.', 'error')

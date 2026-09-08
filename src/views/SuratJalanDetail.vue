@@ -64,39 +64,23 @@
         <!-- ================= WORKFLOW ACTIONS ================= -->
         
         
-                        <!-- DRAFT -->
-        <div v-if="sj.status === 'DRAFT'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 text-center">
-          <h3 class="font-black text-lg mb-4">Aksi Dokumen: Draf</h3>
-          <button @click="changeStatusSafe('ASSIGNED', 'CREATED_AND_ASSIGNED', 'Buka surat jalan ini untuk ditugaskan secara publik?')" :disabled="submitting" class="w-full bg-blue-400 border-2 border-gray-900 text-gray-900 font-black px-6 py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all text-lg">
-            BUKA PENUGASAN
-          </button>
-        </div>
+                        
 
-        <!-- ASSIGNED (Open Task) -->
-        <div v-if="sj.status === 'ASSIGNED'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 text-center">
-          <h3 class="font-black text-lg mb-4">Tugas Terbuka</h3>
-          <button @click="acceptTask" :disabled="submitting" class="w-full bg-indigo-300 border-2 border-gray-900 text-gray-900 font-black px-6 py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all text-lg">
-            AMBIL & KERJAKAN TUGAS INI
-          </button>
-        </div>
-        <!-- ACCEPTED (Start Delivery) -->
-        <div v-if="sj.status === 'ACCEPTED' && isAssignedDriver" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 text-center">
-          <button @click="changeStatus('ON_DELIVERY', 'Mulai perjalanan')" :disabled="submitting" class="w-full bg-purple-400 border-2 border-gray-900 text-gray-900 font-black px-6 py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all text-xl">
+        
+        
+
+        
+        
+
+        <!-- DRAFT (Pulihan) -->
+        <div v-if="sj.status === 'DRAFT'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 text-center">
+          <button @click="changeStatusSafe('ON_DELIVERY', 'STARTED_DELIVERY', 'Mulai pengiriman dokumen ini?')" :disabled="submitting" class="w-full bg-purple-400 border-2 border-gray-900 text-gray-900 font-black px-6 py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all text-xl">
             MULAI PENGIRIMAN
           </button>
         </div>
 
-        
-        <!-- Batal Kirim / Tarik Tugas -->
-        <div v-if="['ASSIGNED', 'ACCEPTED'].includes(sj.status)" class="bg-red-50 border-2 border-red-200 rounded-xl p-4 text-center mt-4">
-          <p class="text-xs font-bold text-red-800 mb-2">Punya kendala teknis atau salah assign?</p>
-          <button @click="recallAssignment" :disabled="submitting" class="text-sm font-bold text-red-900 bg-white border-2 border-red-800 px-4 py-2 rounded-lg hover:bg-red-100 active:translate-y-0.5 transition-all">
-            Batalkan Penugasan Ini
-          </button>
-        </div>
-
         <!-- ON_DELIVERY (Check in / Proof) -->
-        <div v-if="sj.status === 'ON_DELIVERY' && isAssignedDriver" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 space-y-6">
+        <div v-if="sj.status === 'ON_DELIVERY'" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 space-y-6">
           <h3 class="font-black text-xl text-center uppercase">Penyelesaian Pengiriman (Bukti Pengiriman)</h3>
           
           <div v-if="!fotoData" class="border-2 border-dashed border-gray-400 bg-gray-50 rounded-2xl p-10 text-center cursor-pointer hover:bg-gray-100 transition-colors" @click="$refs.cameraInput.click()">
@@ -318,7 +302,7 @@ const fotoPreview = ref(null)
 const penerimaNama = ref('')
 const catatanDelivery = ref('')
 
-const isAssignedDriver = computed(() => sj.value?.supir_id === authStore.user.id)
+
 const isAdmin = computed(() => {
   if (!sj.value) return false
   return sj.value.admin_id === authStore.user.id || authStore.user.id !== sj.value.supir_id
@@ -504,90 +488,11 @@ const changeStatus = async (newStatus, actionLabel = 'STATUS_CHANGED', reason = 
 
 
 
-const acceptTask = () => {
-  openModal({
-    title: 'Ambil Tugas',
-    message: 'Ambil dan kerjakan tugas ini?',
-    confirmText: 'Ambil Tugas',
-    onConfirm: async () => {
-      try {
-        submitting.value = true
-        const { data, error } = await supabase
-          .from('surat_jalan')
-          .update({ status: 'ACCEPTED', supir_id: authStore.user.id })
-          .eq('id', sj.value.id)
-          .eq('status', 'ASSIGNED')
-          .select()
-          
-        if (error) throw error
-        if (data.length === 0) {
-          showToast('Gagal: Tugas sudah diambil oleh orang lain atau dibatalkan', 'error')
-          await fetchDetail()
-          return
-        }
-        
-        await logHistory('ACCEPTED', 'ACCEPTED')
-        showToast('Tugas berhasil diambil', 'success')
-        await fetchDetail()
-      } catch (err) {
-        showToast('Gagal mengambil tugas', 'error')
-      } finally {
-        submitting.value = false
-      }
-    }
-  })
-}
 
-const recallAssignment = () => {
-  openModal({
-    title: 'Batalkan Penugasan',
-    message: 'Apakah Anda yakin ingin membatalkan penugasan ini?',
-    danger: true,
-    requireReason: true,
-    reasonLabel: 'Alasan membatalkan (Truk rusak, dll):',
-    confirmText: 'Batalkan Tugas',
-    onConfirm: async (reason) => {
-      try {
-        submitting.value = true
-        const { error } = await supabase
-          .from('surat_jalan')
-          .update({ status: 'DRAFT', supir_id: null })
-          .eq('id', sj.value.id)
-          
-        if (error) throw error
-        await logHistory('ASSIGNMENT_CANCELLED', 'DRAFT', reason)
-        showToast('Penugasan berhasil dibatalkan', 'success')
-        await fetchDetail()
-      } catch (err) {
-        showToast('Gagal membatalkan penugasan', 'error')
-      } finally {
-        submitting.value = false
-      }
-    }
-  })
-}
 
-const rejectAssignment = () => {
-  openModal({
-    title: 'Tolak Tugas',
-    message: 'Apakah Anda yakin ingin menolak tugas ini?',
-    danger: true,
-    requireReason: true,
-    reasonLabel: 'Alasan menolak tugas:',
-    confirmText: 'Tolak Tugas',
-    onConfirm: (reason) => {
-      supabase.from('surat_jalan')
-        .update({ status: 'DRAFT', supir_id: null })
-        .eq('id', sj.value.id)
-        .then(async ({ error }) => {
-          if (error) throw error
-          await logHistory('ASSIGNMENT_TOLAKED', 'APPROVED', reason)
-          showToast('Assignment ditolak', 'success')
-          fetchDetail()
-        })
-    }
-  })
-}
+
+
+
 
 
 const handleFotoUpload = (event) => {

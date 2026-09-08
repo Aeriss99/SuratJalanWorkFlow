@@ -3,50 +3,16 @@
     <Navbar />
     
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-            <div class="px-4 py-4 sm:px-0 flex flex-col gap-2">
-        <h1 class="text-2xl font-black text-gray-900 tracking-tight">Pengiriman Saya</h1>
+      <div class="px-4 py-4 sm:px-0 flex flex-col gap-4 mb-4">
+        <div class="flex justify-between items-center">
+          <h1 class="text-2xl font-black text-gray-900 tracking-tight">Sedang Dikirim</h1>
+          <router-link to="/surat-jalan/create" class="sm:hidden inline-flex items-center px-4 py-2 border-2 border-gray-900 text-xs font-bold rounded-xl shadow-neo text-gray-900 bg-blue-400 hover:bg-blue-500 active:translate-y-0.5 active:shadow-none transition-all whitespace-nowrap">
+            + Buat
+          </router-link>
+        </div>
         <div class="flex flex-col sm:flex-row justify-between gap-2">
-           <p class="text-sm font-bold text-gray-500">Daftar Surat Jalan yang ditugaskan kepada Anda.</p>
+           <p class="text-sm font-bold text-gray-500">Daftar pengiriman Anda yang sedang berjalan.</p>
            <input type="text" v-model="searchQuery" placeholder="Cari No. SJ / Tujuan..." class="block w-full sm:w-64 px-4 py-2 rounded-xl border-2 border-gray-900 focus:ring-0 focus:border-blue-600 text-sm font-bold shadow-sm" />
-        </div>
-      </div>
-
-      <div class="mt-4 px-4 sm:px-0 mb-6">
-        <div class="sm:hidden">
-          <label for="tabs" class="sr-only">Pilih Tab</label>
-          <div class="relative">
-            <select id="tabs" v-model="activeTab" class="block w-full rounded-xl border-2 border-gray-900 py-3 pl-4 pr-10 text-base font-bold focus:border-blue-500 focus:outline-none sm:text-sm bg-white shadow-neo appearance-none">
-              <option v-for="tab in tabs" :key="tab.id" :value="tab.id">{{ tab.name }} ({{ getTabCount(tab.id) }})</option>
-            </select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-900">
-              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"></path></svg>
-            </div>
-          </div>
-        </div>
-        <div class="hidden sm:block">
-          <nav class="flex space-x-2 overflow-x-auto pb-2" aria-label="Tabs">
-            <button
-              v-for="tab in tabs"
-              :key="tab.id"
-              @click="activeTab = tab.id"
-              :class="[
-                activeTab === tab.id
-                  ? 'bg-gray-900 text-white shadow-neo translate-y-[-2px]'
-                  : 'bg-white text-gray-600 border-2 border-gray-900 hover:bg-gray-50',
-                'px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center whitespace-nowrap'
-              ]"
-            >
-              {{ tab.name }}
-              <span 
-                :class="[
-                  activeTab === tab.id ? 'bg-white text-gray-900' : 'bg-gray-100 text-gray-900 border border-gray-900',
-                  'ml-2 rounded-full py-0.5 px-2.5 text-xs font-bold transition-colors'
-                ]"
-              >
-                {{ getTabCount(tab.id) }}
-              </span>
-            </button>
-          </nav>
         </div>
       </div>
 
@@ -82,9 +48,9 @@
             <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
-            <h3 class="mt-2 text-base font-bold text-gray-900">Tidak ada tugas</h3>
+            <h3 class="mt-2 text-base font-bold text-gray-900">Tidak ada pengiriman aktif</h3>
             <p class="mt-1 text-sm font-medium text-gray-500">
-              Belum ada pengiriman di kategori ini.
+              Semua pengiriman Anda sudah selesai.
             </p>
           </div>
         </div>
@@ -108,15 +74,7 @@ import { useAuthStore } from '@/stores/auth'
 const authStore = useAuthStore()
 const myTasks = ref([])
 const loading = ref(true)
-const activeTab = ref('aktif')
 const searchQuery = ref('')
-
-
-const tabs = [
-  { id: 'tugas_baru', name: 'Menunggu Diterima', statuses: ['ASSIGNED'] },
-  { id: 'aktif', name: 'Sedang Berjalan', statuses: ['ACCEPTED', 'ON_DELIVERY'] },
-  { id: 'selesai', name: 'Riwayat Selesai', statuses: ['DELIVERED', 'COMPLETED'] }
-]
 
 const fetchMyTasks = async () => {
   try {
@@ -126,6 +84,7 @@ const fetchMyTasks = async () => {
       .select('id, nomor_dokumen, status, customer, tanggal_pengiriman, supir_id, created_at')
       .limit(100)
       .eq('supir_id', authStore.user.id)
+      .in('status', ['ON_DELIVERY', 'ACCEPTED'])
       .order('created_at', { ascending: false })
       
     if (error) throw error
@@ -137,14 +96,7 @@ const fetchMyTasks = async () => {
   }
 }
 
-const getTabCount = (tabId) => {
-  const tab = tabs.find(t => t.id === tabId)
-  if (!tab) return 0
-  return myTasks.value.filter(sj => tab.statuses.includes(sj.status)).length
-}
-
 const filteredList = computed(() => {
-  const tab = tabs.find(t => t.id === activeTab.value)
   let list = myTasks.value
   
   if (searchQuery.value) {
@@ -152,20 +104,8 @@ const filteredList = computed(() => {
     list = list.filter(sj => sj.nomor_dokumen.toLowerCase().includes(q) || sj.customer.toLowerCase().includes(q))
   }
   
-  if (tab) {
-    list = list.filter(sj => tab.statuses.includes(sj.status))
-  }
-
-  // Filter 30 hari untuk tab "Riwayat Selesai" jika tidak ada pencarian
-  if (activeTab.value === 'selesai' && !searchQuery.value) {
-    const thirtyDaysAgo = new Date()
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-    list = list.filter(sj => new Date(sj.created_at) >= thirtyDaysAgo)
-  }
-
   return list
 })
-
 
 onMounted(() => {
   fetchMyTasks()
