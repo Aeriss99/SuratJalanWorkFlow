@@ -570,7 +570,8 @@ const submitDelivery = async () => {
     
     
     if (uploadError) {
-      throw new Error('Gagal mengunggah foto bukti ke server. Pastikan koneksi internet stabil.')
+      console.error('Upload Error:', uploadError)
+      throw new Error('Gagal mengunggah foto: ' + (uploadError.message || 'Storage Bucket mungkin belum dibuat di Supabase.'))
     }
     
     const { data: publicUrlData } = supabase.storage.from('bukti').getPublicUrl(fileName)
