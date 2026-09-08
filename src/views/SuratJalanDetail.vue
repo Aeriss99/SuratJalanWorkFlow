@@ -12,7 +12,7 @@
           <router-link v-if="['DRAFT', 'ASSIGNED'].includes(sj.status)" :to="`/surat-jalan/${sj.id}/edit`" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-gray-900 bg-yellow-100 hover:bg-yellow-200 active:translate-y-0.5 active:shadow-none transition-all">
             Edit
           </router-link>
-          <button v-if="['DRAFT', 'COMPLETED'].includes(sj.status) && isAdmin" @click="deleteDocument" :disabled="submitting" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-white bg-red-600 hover:bg-red-700 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
+          <button v-if="['DRAFT', 'COMPLETED', 'DELIVERED'].includes(sj.status) && isAdmin" @click="deleteDocument" :disabled="submitting" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-white bg-red-600 hover:bg-red-700 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
             Hapus
           </button>
           <button v-if="!['CANCELLED', 'REJECTED'].includes(sj.status) && isAdmin" @click="cancelDocument" :disabled="submitting" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-gray-900 bg-red-100 hover:bg-red-200 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
@@ -21,7 +21,7 @@
           <button @click="exportPdf" :disabled="exportingPdf" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-gray-900 bg-white hover:bg-gray-50 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
             {{ exportingPdf ? 'Memproses...' : 'Ekspor PDF' }}
           </button>
-          <button v-if="sj.status === 'COMPLETED' || sj.status === 'DELIVERED'" @click="exportExcel" :disabled="exportingExcel" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-green-700 shadow-neo text-sm font-bold rounded-xl text-green-900 bg-green-100 hover:bg-green-200 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
+          <button v-if="['COMPLETED', 'DELIVERED'].includes(sj.status)" @click="exportExcel" :disabled="exportingExcel" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-green-700 shadow-neo text-sm font-bold rounded-xl text-green-900 bg-green-100 hover:bg-green-200 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
             {{ exportingExcel ? 'Memproses...' : 'Ekspor Excel' }}
           </button>
         </div>
@@ -480,7 +480,7 @@ const changeStatus = async (newStatus, actionLabel = 'STATUS_CHANGED', reason = 
     submitting.value = true
     const { error } = await supabase
       .from('surat_jalan')
-      .update({ status: newStatus, rejection_reason: reason })
+      .update({ status: newStatus,   })
       .eq('id', sj.value.id)
       
     if (error) throw error
