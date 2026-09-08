@@ -9,3 +9,7 @@ ADD COLUMN IF NOT EXISTS bukti_foto_url TEXT,
 ADD COLUMN IF NOT EXISTS bukti_latitude TEXT,
 ADD COLUMN IF NOT EXISTS bukti_longitude TEXT,
 ADD COLUMN IF NOT EXISTS bukti_at TIMESTAMP WITH TIME ZONE;
+ADD COLUMN IF NOT EXISTS pengirim_signature TEXT;
+
+ALTER TABLE public.surat_jalan
+ADD COLUMN IF NOT EXISTS pengirim_signature TEXT;

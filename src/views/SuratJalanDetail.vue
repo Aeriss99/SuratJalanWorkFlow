@@ -132,8 +132,15 @@
         <!-- ================= DATA DISPLAYS ================= -->
 
         <!-- Signatures Display -->
-        <div v-if="sj.penerima_signature" class="bg-white shadow-neo border-2 border-gray-900 sm:rounded-2xl p-6 sm:p-8 flex justify-center text-center">
-          <div class="bg-gray-50 rounded-2xl p-6 border-2 border-gray-200 w-full max-w-sm">
+        <div v-if="sj.penerima_signature || sj.pengirim_signature" class="bg-white shadow-neo border-2 border-gray-900 sm:rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row gap-6 justify-center text-center">
+          <!-- Pengirim -->
+          <div v-if="sj.pengirim_signature" class="bg-gray-50 rounded-2xl p-6 border-2 border-gray-200 w-full max-w-sm">
+            <p class="text-sm font-black text-gray-800 mb-4 uppercase tracking-wider">Pengirim ({{ getHistoryUserName(sj.admin_id) }})</p>
+            <img :src="sj.pengirim_signature" class="mx-auto h-24 object-contain mix-blend-multiply" />
+            <p class="text-xs font-bold text-gray-500 mt-4">{{ formatDate(sj.created_at) }}</p>
+          </div>
+          <!-- Penerima -->
+          <div v-if="sj.penerima_signature" class="bg-gray-50 rounded-2xl p-6 border-2 border-gray-200 w-full max-w-sm">
             <p class="text-sm font-black text-gray-800 mb-4 uppercase tracking-wider">Penerima ({{ sj.penerima_nama }})</p>
             <img :src="sj.penerima_signature" class="mx-auto h-24 object-contain mix-blend-multiply" />
             <p class="text-xs font-bold text-gray-500 mt-4">{{ formatDate(sj.bukti_at) }}</p>
@@ -215,8 +222,11 @@
 
         <div class="grid grid-cols-2 gap-12 text-center mb-12">
           <div>
-            <p class="text-sm font-bold text-gray-900 mb-6">Dibuat Oleh</p>
-            <div class="h-32 flex items-end justify-center pb-4">
+            <p class="text-sm font-bold text-gray-900 mb-6">Dibuat Oleh ({{ getHistoryUserName(sj.admin_id) }})</p>
+            <div v-if="sj.pengirim_signature" class="h-32 flex items-center justify-center">
+              <img :src="sj.pengirim_signature" class="h-full object-contain" />
+            </div>
+            <div v-else class="h-32 flex items-end justify-center pb-4">
                <p class="font-bold text-lg text-gray-800">{{ getHistoryUserName(sj.admin_id) }}</p>
             </div>
             <p class="text-xs text-gray-500 font-medium mt-2">{{ formatDate(sj.created_at) || '-' }}</p>

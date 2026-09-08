@@ -44,6 +44,14 @@
                 class="block w-full px-4 py-3 rounded-xl border-2 border-gray-900 focus:ring-0 focus:border-blue-600 sm:text-sm font-medium transition-colors resize-y"></textarea>
             </div>
 
+            <div>
+              <label class="block text-sm font-bold text-gray-800 mb-2">Tanda Tangan Pengirim (Anda)</label>
+              <div class="border-2 border-dashed border-gray-400 h-48 bg-gray-50 rounded-xl relative">
+                <VueSignaturePad width="100%" height="100%" ref="sigPengirim" />
+                <button type="button" @click="$refs.sigPengirim.clearSignature()" class="absolute top-2 right-2 text-xs font-bold bg-white border-2 border-gray-900 px-2 py-1 rounded shadow-neo">Hapus</button>
+              </div>
+            </div>
+
             <div class="pt-6">
               <button type="submit" :disabled="loading"
                 class="w-full bg-blue-500 border-2 border-gray-900 text-gray-900 font-black py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50 text-base">
@@ -70,6 +78,7 @@ const authStore = useAuthStore()
 const { showToast } = useToast()
 
 const loading = ref(false)
+const sigPengirim = ref(null)
 
 const form = reactive({
   nomor_dokumen: '',
@@ -89,6 +98,12 @@ const submitForm = async () => {
     return
   }
 
+  const { isEmpty, data: sigData } = sigPengirim.value.saveSignature()
+  if (isEmpty) {
+    showToast('Tanda tangan pengirim wajib diisi', 'error')
+    return
+  }
+
   try {
     loading.value = true
     const { data, error } = await supabase
@@ -100,6 +115,7 @@ const submitForm = async () => {
         data_barang: form.data_barang,
         admin_id: authStore.user.id,
         supir_id: authStore.user.id,
+        pengirim_signature: sigData,
         status: 'ON_DELIVERY'
       })
       .select()
