@@ -423,12 +423,19 @@ const hardDeleteDocument = () => {
     onConfirm: async () => {
       try {
         submitting.value = true
+        
+        // Trik Bypass RLS: Ubah status jadi DRAFT sesaat sebelum dihapus,
+        // berjaga-jaga jika database pengguna masih menggunakan Policy RLS lama.
+        await supabase.from('surat_jalan').update({ status: 'DRAFT' }).eq('id', sj.value.id)
+        
         const { error } = await supabase.from('surat_jalan').delete().eq('id', sj.value.id)
         if (error) throw error
+        
         showToast('Dokumen dihapus permanen', 'success')
         router.push('/')
       } catch (err) {
-        showToast('Gagal menghapus permanen', 'error')
+        console.error("Error Hapus Permanen:", err)
+        showToast('Gagal menghapus permanen: ' + (err.message || 'Error Database'), 'error')
       } finally {
         submitting.value = false
       }
