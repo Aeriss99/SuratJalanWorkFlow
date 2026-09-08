@@ -201,7 +201,7 @@
       </div>
 
       <!-- PDF Template -->
-      <div class="fixed top-[200vh] left-0 w-[800px] bg-white text-black p-10 font-sans" id="pdf-template">
+      <div class="fixed top-[200vh] -left-[9999px] w-[800px] bg-white text-black p-10 font-sans" id="pdf-template">
         <!-- Kept similar, updated for new fields -->
         <div class="border-b-4 border-gray-900 pb-6 mb-8 text-center">
           <h1 class="text-4xl font-black tracking-tight uppercase">Surat Jalan</h1>
@@ -307,7 +307,6 @@ const { showToast } = useToast()
 
 const usersList = ref([])
 const supirName = ref('')
-const selectedDriverId = ref(null)
 
 const exportingPdf = ref(false)
 const exportingExcel = ref(false)

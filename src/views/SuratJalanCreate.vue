@@ -15,11 +15,11 @@
           <form @submit.prevent="submitForm('DRAFT')" class="space-y-6">
             <div>
               <label class="block text-sm font-bold text-gray-800 mb-2">Nomor Dokumen</label>
-              <div class="flex gap-4">
+              <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <input type="text" v-model="form.nomor_dokumen" required placeholder="Ketik nomor atau klik Generate"
                   class="block w-full px-4 py-3 rounded-xl border-2 border-gray-900 focus:ring-0 focus:border-blue-600 sm:text-sm font-bold transition-colors" />
                 <button type="button" @click="generateNomor"
-                  class="px-4 py-2 border-2 border-gray-900 text-sm font-bold rounded-xl text-gray-900 bg-white hover:bg-gray-50 shadow-[2px_2px_0_rgb(0,0,0)] active:translate-y-0.5 active:shadow-none transition-all">
+                  class="w-full sm:w-auto px-4 py-3 border-2 border-gray-900 text-sm font-bold rounded-xl text-gray-900 bg-white hover:bg-gray-50 shadow-neo active:translate-y-0.5 active:shadow-none transition-all">
                   Generate
                 </button>
               </div>
@@ -44,14 +44,10 @@
                 class="block w-full px-4 py-3 rounded-xl border-2 border-gray-900 focus:ring-0 focus:border-blue-600 sm:text-sm font-medium transition-colors resize-y"></textarea>
             </div>
 
-            <div class="pt-6 flex flex-col sm:flex-row gap-4">
-              <button type="button" @click="submitForm('DRAFT')" :disabled="loading"
-                class="w-full sm:flex-1 bg-white border-2 border-gray-900 text-gray-900 font-black py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50 text-base">
-                SIMPAN DRAFT
-              </button>
+            <div class="pt-6">
               <button type="submit" :disabled="loading"
-                class="w-full sm:flex-1 bg-blue-500 border-2 border-gray-900 text-gray-900 font-black py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50 text-base">
-                BUAT DRAF / SURAT JALAN
+                class="w-full bg-blue-500 border-2 border-gray-900 text-gray-900 font-black py-4 rounded-xl shadow-neo active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50 text-base">
+                BUAT SURAT JALAN BARU (DRAF)
               </button>
             </div>
           </form>
