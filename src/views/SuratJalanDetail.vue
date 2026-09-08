@@ -48,12 +48,6 @@
                   <dt class="text-xs font-bold text-gray-500 uppercase tracking-wider">Tgl Pengiriman</dt>
                   <dd class="mt-1 text-sm font-bold text-gray-900">{{ sj.tanggal_pengiriman }}</dd>
                 </div>
-                <div class="sm:col-span-1">
-                  <dt class="text-xs font-bold text-gray-500 uppercase tracking-wider">Petugas Assigned</dt>
-                  <dd class="mt-1 text-sm font-bold text-gray-900">
-                    {{ supirName || 'Belum dipilih' }}
-                  </dd>
-                </div>
               </dl>
             </div>
 
@@ -718,8 +712,7 @@ const exportExcel = async () => {
       ['Catatan Pengiriman', sj.value.catatan_delivery || '-'],
       ['Lokasi (Lat, Lng)', `${sj.value.bukti_latitude || '-'}, ${sj.value.bukti_longitude || '-'}`],
       [''],
-      ['Dibuat Oleh', getHistoryUserName(sj.value.admin_id)],
-      ['Petugas Pengiriman', supirName.value]
+      ['Dibuat Oleh', getHistoryUserName(sj.value.admin_id)]
     ]
 
     const ws = XLSX.utils.aoa_to_sheet(excelData)

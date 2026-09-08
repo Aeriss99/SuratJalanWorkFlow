@@ -91,7 +91,6 @@
                   </p>
                   <div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs font-medium text-gray-500">
                     <p>Tgl: <span class="font-bold text-gray-800">{{ sj.tanggal_pengiriman }}</span></p>
-                    <p v-if="sj.supir_id">Petugas: <span class="font-bold text-gray-800">{{ getSupirName(sj.supir_id) }}</span></p>
                   </div>
                 </div>
                 <div class="hidden sm:flex flex-shrink-0 items-center">
