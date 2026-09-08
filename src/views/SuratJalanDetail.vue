@@ -188,7 +188,7 @@
       </div>
 
       <!-- PDF Template -->
-      <div class="fixed top-[200vh] -left-[9999px] w-[800px] bg-white text-black p-10 font-sans" id="pdf-template">
+      <div class="fixed top-0 left-0 opacity-0 pointer-events-none z-[-50] w-[800px] bg-white text-black p-10 font-sans" id="pdf-template">
         <!-- Kept similar, updated for new fields -->
         <div class="border-b-4 border-gray-900 pb-6 mb-8 text-center">
           <h1 class="text-4xl font-black tracking-tight uppercase">Surat Jalan</h1>
@@ -625,7 +625,8 @@ const exportPdf = async () => {
     pdf.save(`${sj.value.nomor_dokumen}.pdf`)
     showToast('PDF berhasil didownload', 'success')
   } catch (err) {
-    showToast('Gagal ekspor PDF', 'error')
+    console.error("Error Export PDF:", err)
+    showToast('Gagal ekspor PDF: ' + (err.message || 'Error'), 'error')
   } finally {
     exportingPdf.value = false
   }
@@ -634,7 +635,8 @@ const exportPdf = async () => {
 const exportExcel = async () => {
   try {
     exportingExcel.value = true
-    const XLSX = await import('xlsx')
+    const xlsxModule = await import('xlsx')
+    const XLSX = xlsxModule.default || xlsxModule
     
     // Siapkan data untuk excel
     const excelData = [
@@ -667,7 +669,8 @@ const exportExcel = async () => {
     XLSX.writeFile(wb, `${sj.value.nomor_dokumen}.xlsx`)
     showToast('Excel berhasil didownload', 'success')
   } catch (err) {
-    showToast('Gagal ekspor Excel', 'error')
+    console.error("Error Export Excel:", err)
+    showToast('Gagal ekspor Excel: ' + (err.message || 'Error'), 'error')
   } finally {
     exportingExcel.value = false
   }
