@@ -195,7 +195,7 @@
       </div>
 
       <!-- PDF Template -->
-      <div class="fixed top-0 left-0 opacity-0 pointer-events-none z-[-50] w-[800px] bg-white text-black p-10 font-sans" id="pdf-template">
+      <div style="display: none; width: 800px;" class="bg-white text-black p-10 font-sans" id="pdf-template">
         <!-- Kept similar, updated for new fields -->
         <div class="border-b-4 border-gray-900 pb-6 mb-8 text-center">
           <h1 class="text-4xl font-black tracking-tight uppercase">Surat Jalan</h1>
@@ -286,13 +286,16 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import { getStatusLabel, statusColor } from '@/utils/status'
 import Navbar from '@/components/Navbar.vue'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
+import * as XLSX from 'xlsx'
+import { jsPDF } from 'jspdf'
+import html2canvas from 'html2canvas'
 
 const route = useRoute()
 const router = useRouter()
@@ -621,12 +624,20 @@ const submitDelivery = async () => {
 }
 
 const exportPdf = async () => {
+  // Pindahkan elemen ke layar sejenak agar html2canvas bisa membaca ukurannya
   const element = document.getElementById('pdf-template')
   if (!element) return
+  
+  // Trik: Tampilkan elemen, render, lalu sembunyikan lagi
+  element.style.position = 'absolute'
+  element.style.left = '0'
+  element.style.top = '0'
+  element.style.zIndex = '-50'
+  element.style.display = 'block'
+  await nextTick()
+  
   try {
     exportingPdf.value = true
-    const [{ jsPDF }, html2canvasModule] = await Promise.all([import('jspdf'), import('html2canvas')])
-    const html2canvas = html2canvasModule.default || html2canvasModule
     const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#ffffff' })
     const imgData = canvas.toDataURL('image/jpeg', 0.8)
     const pdf = new jsPDF('p', 'mm', 'a4')
@@ -639,6 +650,7 @@ const exportPdf = async () => {
     console.error("Error Export PDF:", err)
     showToast('Gagal ekspor PDF: ' + (err.message || 'Error'), 'error')
   } finally {
+    element.style.display = 'none'
     exportingPdf.value = false
   }
 }
@@ -646,8 +658,6 @@ const exportPdf = async () => {
 const exportExcel = async () => {
   try {
     exportingExcel.value = true
-    const xlsxModule = await import('xlsx')
-    const XLSX = xlsxModule.default || xlsxModule
     
     // Siapkan data untuk excel
     const excelData = [
