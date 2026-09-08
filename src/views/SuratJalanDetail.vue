@@ -12,16 +12,19 @@
           <router-link v-if="['DRAFT', 'ASSIGNED'].includes(sj.status)" :to="`/surat-jalan/${sj.id}/edit`" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-gray-900 bg-yellow-100 hover:bg-yellow-200 active:translate-y-0.5 active:shadow-none transition-all">
             Edit
           </router-link>
-          <button v-if="isAdmin" @click="deleteDocument" :disabled="submitting" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-white bg-red-600 hover:bg-red-700 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
+          <button v-if="['CANCELLED', 'DELETED'].includes(sj.status) && isAdmin" @click="restoreToDraft" :disabled="submitting" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-gray-900 bg-blue-300 hover:bg-blue-400 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
+            Pulihkan ke Draf
+          </button>
+          <button v-if="!['DELETED'].includes(sj.status) && isAdmin" @click="deleteDocument" :disabled="submitting" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-white bg-red-600 hover:bg-red-700 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
             Hapus
           </button>
-          <button v-if="sj.status !== 'CANCELLED' && isAdmin" @click="cancelDocument" :disabled="submitting" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-gray-900 bg-red-100 hover:bg-red-200 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
+          <button v-if="!['CANCELLED', 'DELETED'].includes(sj.status) && isAdmin" @click="cancelDocument" :disabled="submitting" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-gray-900 bg-red-100 hover:bg-red-200 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
             Batalkan
           </button>
           <button @click="exportPdf" :disabled="exportingPdf" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-gray-900 bg-white hover:bg-gray-50 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
             {{ exportingPdf ? 'Memproses...' : 'Ekspor PDF' }}
           </button>
-          <button v-if="sj.status !== 'DRAFT'" @click="exportExcel" :disabled="exportingExcel" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-green-700 shadow-neo text-sm font-bold rounded-xl text-green-900 bg-green-100 hover:bg-green-200 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
+          <button v-if="!['DRAFT', 'CANCELLED', 'DELETED'].includes(sj.status)" @click="exportExcel" :disabled="exportingExcel" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-green-700 shadow-neo text-sm font-bold rounded-xl text-green-900 bg-green-100 hover:bg-green-200 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
             {{ exportingExcel ? 'Memproses...' : 'Ekspor Excel' }}
           </button>
         </div>
@@ -427,21 +430,22 @@ const confirmModal = () => {
 const deleteDocument = () => {
   openModal({
     title: 'Hapus Dokumen',
-    message: 'Apakah Anda yakin ingin menghapus dokumen ini secara permanen?',
+    message: 'Apakah Anda yakin ingin memindahkan dokumen ini ke arsip (Soft Delete)?',
     danger: true,
-    confirmText: 'Hapus Permanen',
-    onConfirm: async () => {
-      try {
-        submitting.value = true
-        const { error } = await supabase.from('surat_jalan').delete().eq('id', sj.value.id)
-        if (error) throw error
-        showToast('Dokumen berhasil dihapus', 'success')
-        router.push('/')
-      } catch (err) {
-        showToast('Gagal menghapus dokumen', 'error')
-      } finally {
-        submitting.value = false
-      }
+    confirmText: 'Hapus',
+    onConfirm: () => {
+      changeStatus('DELETED', 'DELETED_SOFT', 'Dihapus oleh pengguna')
+    }
+  })
+}
+
+const restoreToDraft = () => {
+  openModal({
+    title: 'Pulihkan Dokumen',
+    message: 'Dokumen ini akan diaktifkan kembali menjadi Draf. Lanjutkan?',
+    confirmText: 'Pulihkan',
+    onConfirm: () => {
+      changeStatus('DRAFT', 'RESTORED_TO_DRAFT', 'Dipulihkan dari Batal/Hapus')
     }
   })
 }

@@ -16,20 +16,20 @@
       <!-- Quick Stats -->
       <div class="px-4 sm:px-0 mb-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div class="bg-gray-100 border-2 border-gray-300 rounded-2xl p-4 shadow-sm">
-          <p class="text-xs font-bold text-gray-600 uppercase">Draft</p>
-          <p class="text-2xl font-black text-gray-900">{{ getTabCount('DRAFT') }}</p>
+          <p class="text-xs font-bold text-gray-600 uppercase">Semua Aktif</p>
+          <p class="text-2xl font-black text-gray-900">{{ getTabCount('semua') }}</p>
         </div>
         <div class="bg-orange-50 border-2 border-orange-200 rounded-2xl p-4 shadow-sm">
-          <p class="text-xs font-bold text-orange-800 uppercase">Tugas Terbuka</p>
-          <p class="text-2xl font-black text-orange-900">{{ getTabCount('ASSIGNED') }}</p>
+          <p class="text-xs font-bold text-orange-800 uppercase">Draft & Batal</p>
+          <p class="text-2xl font-black text-orange-900">{{ getTabCount('draft') }}</p>
         </div>
         <div class="bg-purple-50 border-2 border-purple-200 rounded-2xl p-4 shadow-sm">
-          <p class="text-xs font-bold text-purple-800 uppercase">Dalam Perjalanan</p>
-          <p class="text-2xl font-black text-purple-900">{{ getTabCount('ON_DELIVERY') }}</p>
+          <p class="text-xs font-bold text-purple-800 uppercase">Sedang Berjalan</p>
+          <p class="text-2xl font-black text-purple-900">{{ getTabCount('berjalan') }}</p>
         </div>
         <div class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 shadow-sm">
           <p class="text-xs font-bold text-blue-800 uppercase">Selesai</p>
-          <p class="text-2xl font-black text-blue-900">{{ getTabCount('COMPLETED') }}</p>
+          <p class="text-2xl font-black text-blue-900">{{ getTabCount('selesai') }}</p>
         </div>
       </div>
 
@@ -136,14 +136,10 @@ const activeTab = ref('semua')
 const searchQuery = ref('')
 
 const tabs = [
-  { id: 'semua', name: 'Semua' },
-  { id: 'DRAFT', name: 'Draft' },
-  { id: 'ASSIGNED', name: 'Tugas Terbuka' },
-  { id: 'ACCEPTED', name: 'Diterima' },
-  { id: 'ON_DELIVERY', name: 'Dalam Pengiriman' },
-  { id: 'DELIVERED', name: 'Terkirim' },
-  { id: 'COMPLETED', name: 'Selesai' },
-  { id: 'CANCELLED', name: 'Dibatalkan' }
+  { id: 'semua', name: 'Semua Aktif', statuses: ['DRAFT', 'ASSIGNED', 'ACCEPTED', 'ON_DELIVERY', 'DELIVERED', 'COMPLETED'] },
+  { id: 'draft', name: 'Draft & Batal', statuses: ['DRAFT', 'CANCELLED', 'DELETED'] },
+  { id: 'berjalan', name: 'Sedang Berjalan', statuses: ['ASSIGNED', 'ACCEPTED', 'ON_DELIVERY'] },
+  { id: 'selesai', name: 'Selesai', statuses: ['DELIVERED', 'COMPLETED'] }
 ]
 
 const users = ref([])
@@ -191,6 +187,7 @@ const fetchSuratJalan = async () => {
 }
 
 const filteredList = computed(() => {
+  const tab = tabs.find(t => t.id === activeTab.value)
   let list = suratJalanList.value
   
   if (searchQuery.value) {
@@ -198,12 +195,12 @@ const filteredList = computed(() => {
     list = list.filter(sj => sj.nomor_dokumen.toLowerCase().includes(q) || sj.customer.toLowerCase().includes(q))
   }
   
-  if (activeTab.value !== 'semua') {
-    list = list.filter(sj => sj.status === activeTab.value)
+  if (tab) {
+    list = list.filter(sj => tab.statuses.includes(sj.status))
   }
 
   // Filter 30 hari untuk status Selesai jika tidak ada pencarian
-  if (activeTab.value === 'COMPLETED' && !searchQuery.value) {
+  if (activeTab.value === 'selesai' && !searchQuery.value) {
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
     list = list.filter(sj => new Date(sj.created_at) >= thirtyDaysAgo)
@@ -213,8 +210,9 @@ const filteredList = computed(() => {
 })
 
 const getTabCount = (tabId) => {
-  if (tabId === 'semua') return suratJalanList.value.length
-  return suratJalanList.value.filter(sj => sj.status === tabId).length
+  const tab = tabs.find(t => t.id === tabId)
+  if (!tab) return 0
+  return suratJalanList.value.filter(sj => tab.statuses.includes(sj.status)).length
 }
 
 </script>
