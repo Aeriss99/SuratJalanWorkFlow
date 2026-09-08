@@ -277,7 +277,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import { getStatusLabel, statusColor } from '@/utils/status'
 import Navbar from '@/components/Navbar.vue'
@@ -285,6 +285,7 @@ import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
+const router = useRouter()
 const authStore = useAuthStore()
 const sj = ref(null)
 const history = ref([])
