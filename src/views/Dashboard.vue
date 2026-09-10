@@ -264,13 +264,21 @@ const sendToGoogleSheets = async () => {
     const response = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
       body: JSON.stringify(payload),
+      redirect: 'follow',
       headers: {
-        'Content-Type': 'text/plain;charset=utf-8' // Hindari preflight CORS
+        'Content-Type': 'text/plain;charset=utf-8'
       }
     })
     
-    // Karena kita butuh balasan URL, kita parse JSON
-    const result = await response.json()
+    let result;
+    const responseText = await response.text();
+    try {
+      result = JSON.parse(responseText);
+    } catch (parseErr) {
+      console.error('Bukan JSON:', responseText);
+      throw new Error('Respons dari server bukan JSON. Kemungkinan diblokir oleh Google Login atau URL salah.');
+    }
+    
     if (result.status === 'success') {
       generatedSheetUrl.value = result.url
       isCreatingSheet.value = false
@@ -279,7 +287,7 @@ const sendToGoogleSheets = async () => {
     }
   } catch (err) {
     console.error(err)
-    alert('Terjadi kesalahan saat mengirim ke Google Sheets. Pastikan URL Web App sudah benar dan CORS tidak memblokir.')
+    alert('Error: ' + err.message)
     showSuccessModal.value = false
   } finally {
     isSendingToSheets.value = false
