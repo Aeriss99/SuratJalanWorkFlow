@@ -27,9 +27,6 @@
           <button @click="exportPdf" :disabled="exportingPdf" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-gray-900 shadow-neo text-sm font-bold rounded-xl text-gray-900 bg-white hover:bg-gray-50 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
             {{ exportingPdf ? 'Memproses...' : 'Ekspor PDF' }}
           </button>
-          <button @click="exportExcel" :disabled="exportingExcel" class="flex-1 sm:flex-none justify-center px-4 py-2 border-2 border-green-700 shadow-neo text-sm font-bold rounded-xl text-green-900 bg-green-100 hover:bg-green-200 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
-            {{ exportingExcel ? 'Memproses...' : 'Ekspor Excel' }}
-          </button>
         </div>
       </div>
 
@@ -293,7 +290,6 @@ import { getStatusLabel, statusColor } from '@/utils/status'
 import Navbar from '@/components/Navbar.vue'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
-import * as XLSX from 'xlsx'
 import { jsPDF } from 'jspdf'
 import html2canvas from 'html2canvas'
 
@@ -310,7 +306,6 @@ const usersList = ref([])
 const supirName = ref('')
 
 const exportingPdf = ref(false)
-const exportingExcel = ref(false)
 const sigAdmin = ref(null)
 const sigPenerima = ref(null)
 const cameraInput = ref(null)
@@ -645,47 +640,6 @@ const exportPdf = async () => {
   }
 }
 
-const exportExcel = async () => {
-  try {
-    exportingExcel.value = true
-    
-    // Siapkan data untuk excel
-    const excelData = [
-      ['SURAT JALAN'],
-      [''],
-      ['Nomor Dokumen', sj.value.nomor_dokumen],
-      ['Customer / Tujuan', sj.value.customer],
-      ['Tanggal Pengiriman', sj.value.tanggal_pengiriman],
-      ['Status', sj.value.status],
-      [''],
-      ['DATA BARANG'],
-      [sj.value.data_barang],
-      [''],
-      ['INFORMASI PENERIMA'],
-      ['Nama Penerima', sj.value.penerima_nama || '-'],
-      ['Waktu Diterima', formatDate(sj.value.bukti_at)],
-      ['Catatan Pengiriman', sj.value.catatan_delivery || '-'],
-      ['Lokasi (Lat, Lng)', `${sj.value.bukti_latitude || '-'}, ${sj.value.bukti_longitude || '-'}`],
-      [''],
-      ['Dibuat Oleh', getHistoryUserName(sj.value.admin_id)]
-    ]
-
-    const ws = XLSX.utils.aoa_to_sheet(excelData)
-    const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'Surat Jalan')
-    
-    // Mengatur lebar kolom agar rapi
-    ws['!cols'] = [{ wch: 20 }, { wch: 40 }]
-
-    XLSX.writeFile(wb, `${sj.value.nomor_dokumen}.xlsx`)
-    showToast('Excel berhasil didownload', 'success')
-  } catch (err) {
-    console.error("Error Export Excel:", err)
-    showToast('Gagal ekspor Excel: ' + (err.message || 'Error'), 'error')
-  } finally {
-    exportingExcel.value = false
-  }
-}
 
 onMounted(async () => {
   await fetchAllUsers()

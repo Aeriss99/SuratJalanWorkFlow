@@ -7,6 +7,9 @@
         <h1 class="text-2xl font-black text-gray-900 tracking-tight">Daftar Surat Jalan</h1>
         <div class="flex gap-2 w-full sm:w-auto">
           <input type="text" v-model="searchQuery" placeholder="Cari No. SJ / Customer..." class="block w-full sm:w-64 px-4 py-2.5 rounded-xl border-2 border-gray-900 focus:ring-0 focus:border-blue-600 text-sm font-bold shadow-sm" />
+          <button v-if="selectedSj.length > 0" @click="sendToGoogleSheets" :disabled="isSendingToSheets" class="hidden sm:inline-flex items-center px-4 py-2.5 border-2 border-gray-900 text-sm font-bold rounded-xl shadow-neo text-green-900 bg-green-400 hover:bg-green-500 active:translate-y-0.5 active:shadow-none transition-all whitespace-nowrap disabled:opacity-50">
+            {{ isSendingToSheets ? 'Mengirim...' : 'Kirim ke Google Sheets (' + selectedSj.length + ')' }}
+          </button>
           <router-link to="/surat-jalan/create" class="hidden sm:inline-flex items-center px-4 py-2.5 border-2 border-gray-900 text-sm font-bold rounded-xl shadow-neo text-gray-900 bg-blue-400 hover:bg-blue-500 active:translate-y-0.5 active:shadow-none transition-all whitespace-nowrap">
             Buat Baru
           </router-link>
@@ -75,8 +78,21 @@
 
       <div class="mt-4 px-4 sm:px-0">
         <!-- Surat Jalan List -->
+        <div v-if="filteredList.length > 0" class="mb-4 flex items-center gap-2 bg-white p-3 rounded-xl border-2 border-gray-200">
+          <input type="checkbox" @change="toggleSelectAll" :checked="selectedSj.length === filteredList.length" class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+          <span class="text-sm font-bold text-gray-700">Pilih Semua ({{ filteredList.length }})</span>
+          
+          <button v-if="selectedSj.length > 0" @click="sendToGoogleSheets" :disabled="isSendingToSheets" class="sm:hidden ml-auto items-center px-3 py-1.5 border-2 border-gray-900 text-xs font-bold rounded-xl shadow-neo text-green-900 bg-green-400 hover:bg-green-500 active:translate-y-0.5 active:shadow-none transition-all disabled:opacity-50">
+            {{ isSendingToSheets ? 'Mengirim...' : 'Kirim ke Sheets' }}
+          </button>
+        </div>
+        
         <div class="space-y-4">
-          <div v-for="sj in filteredList" :key="sj.id" class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 overflow-hidden hover:translate-y-[-2px] hover:shadow-neo-strong transition-all">
+          <div v-for="sj in filteredList" :key="sj.id" class="flex flex-row items-stretch gap-2">
+            <div class="flex items-center pl-2">
+              <input type="checkbox" v-model="selectedSj" :value="sj.id" class="w-5 h-5 rounded border-gray-400 text-blue-600 focus:ring-blue-500" />
+            </div>
+            <div class="flex-1 bg-white rounded-2xl shadow-neo border-2 border-gray-900 overflow-hidden hover:translate-y-[-2px] hover:shadow-neo-strong transition-all">
             <router-link :to="`/surat-jalan/${sj.id}`" class="block">
               <div class="p-4 sm:px-6 sm:py-5 flex flex-col sm:flex-row justify-between gap-3">
                 <div class="flex-1">
@@ -100,6 +116,7 @@
                 </div>
               </div>
             </router-link>
+            </div>
           </div>
           
           <div v-if="filteredList.length === 0 && !loading" class="px-4 py-16 text-center bg-white rounded-2xl border-2 border-dashed border-gray-300">
@@ -134,6 +151,67 @@ const suratJalanList = ref([])
 const loading = ref(true)
 const activeTab = ref('semua')
 const searchQuery = ref('')
+const selectedSj = ref([])
+const isSendingToSheets = ref(false)
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz8XzCqaai5DI7SIEHmjrNsPs6hgDXkE__pYABXzJhOKgWEpft58ubExGsBxi18mrs1/exec'
+
+const toggleSelectAll = (e) => {
+  if (e.target.checked) {
+    selectedSj.value = filteredList.value.map(sj => sj.id)
+  } else {
+    selectedSj.value = []
+  }
+}
+
+const sendToGoogleSheets = async () => {
+  if (selectedSj.value.length === 0) return
+  isSendingToSheets.value = true
+  
+  try {
+    const { data: fullData, error } = await supabase
+      .from('surat_jalan')
+      .select('*')
+      .in('id', selectedSj.value)
+      
+    if (error) throw error
+    
+    const payload = fullData.map(sj => ({
+      nomor_dokumen: sj.nomor_dokumen || '-',
+      customer: sj.customer || '-',
+      tanggal_pengiriman: sj.tanggal_pengiriman || '-',
+      status: sj.status || '-',
+      data_barang: sj.data_barang || '-',
+      penerima_nama: sj.penerima_nama || '-',
+      waktu_diterima: sj.bukti_at ? new Date(sj.bukti_at).toLocaleString('id-ID') : '-',
+      catatan_pengiriman: sj.catatan_delivery || '-',
+      lokasi: `${sj.bukti_latitude || '-'}, ${sj.bukti_longitude || '-'}`,
+      dibuat_oleh: sj.admin_id
+    }))
+    
+    // HTTP POST ke Google Sheets (Web App URL)
+    const response = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8'
+      }
+    })
+    
+    const result = await response.json()
+    if (result.status === 'success') {
+      alert('Berhasil mengirim ' + payload.length + ' data ke Google Sheets!')
+      selectedSj.value = []
+    } else {
+      throw new Error(result.message || 'Gagal mengirim')
+    }
+  } catch (err) {
+    console.error(err)
+    alert('Terjadi kesalahan saat mengirim ke Google Sheets. Pastikan URL Web App sudah benar.')
+  } finally {
+    isSendingToSheets.value = false
+  }
+}
+
 
 const tabs = [
   { id: 'semua', name: 'Semua Aktif', statuses: ['DRAFT', 'ASSIGNED', 'ACCEPTED', 'ON_DELIVERY', 'DELIVERED', 'COMPLETED'] },
