@@ -237,6 +237,14 @@ const sendToGoogleSheets = async () => {
       .in('id', selectedSj.value)
       
     if (error) throw error
+
+    // Fetch user names
+    const { data: usersData } = await supabase.from('users').select('id, name, email')
+    const getUserName = (id) => {
+      if (!usersData) return id
+      const user = usersData.find(u => u.id === id)
+      return user ? (user.name || user.email) : id
+    }
     
     const payload = fullData.map(sj => ({
       nomor_dokumen: sj.nomor_dokumen || '-',
@@ -249,7 +257,7 @@ const sendToGoogleSheets = async () => {
       catatan_pengiriman: sj.catatan_delivery || '-',
       lokasi: `${sj.bukti_latitude || '-'}, ${sj.bukti_longitude || '-'}`,
       foto_bukti: sj.bukti_foto_url ? `=IMAGE("${sj.bukti_foto_url}")` : '-',
-      dibuat_oleh: sj.admin_id
+      dibuat_oleh: getUserName(sj.admin_id)
     }))
     
     // HTTP POST ke Google Sheets
