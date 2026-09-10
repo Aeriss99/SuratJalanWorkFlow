@@ -6,8 +6,8 @@
         <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-600 text-white mb-5 shadow-lg shadow-blue-600/20">
           <Package class="w-8 h-8" />
         </div>
-        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
-          SJFlow
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight flex justify-center">
+          <img src="/logo.png" alt="Logo" class="h-12 w-auto mix-blend-multiply" />
         </h1>
         <p class="mt-2 text-sm text-gray-500">
           Sistem Digital Surat Jalan & Serah Terima

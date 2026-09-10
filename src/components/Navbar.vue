@@ -14,7 +14,7 @@
             </button>
             
             <div class="flex-shrink-0 flex items-center font-black text-xl tracking-tight text-blue-600">
-              SJFlow
+              <img src="/logo.png" alt="Logo" class="h-8 w-auto mix-blend-multiply" />
             </div>
             
             <!-- Desktop Links -->
