@@ -248,6 +248,7 @@ const sendToGoogleSheets = async () => {
       waktu_diterima: sj.bukti_at ? new Date(sj.bukti_at).toLocaleString('id-ID') : '-',
       catatan_pengiriman: sj.catatan_delivery || '-',
       lokasi: `${sj.bukti_latitude || '-'}, ${sj.bukti_longitude || '-'}`,
+      foto_bukti: sj.bukti_foto_url ? `=IMAGE("${sj.bukti_foto_url}")` : '-',
       dibuat_oleh: sj.admin_id
     }))
     

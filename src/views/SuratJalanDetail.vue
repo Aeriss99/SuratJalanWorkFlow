@@ -217,7 +217,16 @@
           </div>
         </div>
 
+        
+        <div v-if="sj.bukti_foto_url" class="mb-12">
+          <p class="text-xs font-bold text-gray-500 uppercase mb-2">Foto Bukti Pengiriman</p>
+          <div class="p-6 border-2 border-gray-900 rounded-xl flex items-center justify-center">
+            <img :src="sj.bukti_foto_url" crossorigin="anonymous" class="max-h-64 object-contain rounded-lg" />
+          </div>
+        </div>
+
         <div class="grid grid-cols-2 gap-12 text-center mb-12">
+
           <div>
             <p class="text-sm font-bold text-gray-900 mb-6">Dibuat Oleh ({{ getHistoryUserName(sj.admin_id) }})</p>
             <div v-if="sj.pengirim_signature" class="h-32 flex items-center justify-center">
