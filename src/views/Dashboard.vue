@@ -137,6 +137,48 @@
             <p>Memuat data...</p>
         </div>
       </div>
+    
+      <!-- Modal Export Google Sheets -->
+      <Teleport to="body">
+        <div v-if="showSuccessModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900 bg-opacity-50 backdrop-blur-sm transition-opacity">
+          <div class="bg-white border-4 border-gray-900 shadow-neo rounded-2xl p-6 w-full max-w-lg animate-in fade-in zoom-in duration-200">
+            
+            <!-- Loading State -->
+            <div v-if="isCreatingSheet" class="text-center py-6">
+              <div class="animate-spin inline-block w-12 h-12 border-4 border-gray-900 border-t-blue-500 rounded-full mb-4"></div>
+              <h3 class="text-xl font-black text-gray-900">Membuat Spreadsheet...</h3>
+              <p class="text-sm font-bold text-gray-500 mt-2">Menyiapkan data Anda di Google Drive, mohon tunggu sebentar.</p>
+            </div>
+
+            <!-- Success State -->
+            <div v-else>
+              <h3 class="text-2xl font-black text-green-600 mb-2">✅ Pengiriman Berhasil!</h3>
+              <p class="text-sm font-bold text-gray-600 mb-6">{{ selectedSj.length }} Surat Jalan telah sukses masuk ke Google Sheets.</p>
+              
+              <div class="mb-6">
+                <label class="block text-sm font-bold text-gray-900 mb-2">Tautan Spreadsheet Baru:</label>
+                <div class="flex gap-2">
+                  <input type="text" readonly :value="generatedSheetUrl" class="w-full border-2 border-gray-900 rounded-xl p-3 font-medium bg-gray-50 text-gray-600 outline-none" />
+                  <button @click="copyToClipboard" class="px-4 py-3 border-2 border-gray-900 rounded-xl font-black shadow-neo active:translate-y-0.5 active:shadow-none transition-all bg-yellow-300 hover:bg-yellow-400 text-gray-900 whitespace-nowrap">
+                    {{ copySuccessMessage ? 'Disalin!' : 'Salin' }}
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex flex-col sm:flex-row gap-3">
+                <button @click="closeModal" class="flex-1 px-4 py-3 border-2 border-gray-900 rounded-xl text-gray-900 font-bold hover:bg-gray-100 transition-colors">
+                  Tutup
+                </button>
+                <a :href="generatedSheetUrl" target="_blank" class="flex-1 px-4 py-3 border-2 border-gray-900 rounded-xl font-black shadow-neo active:translate-y-0.5 active:shadow-none transition-all bg-blue-400 hover:bg-blue-500 text-gray-900 text-center">
+                  Buka Tab Baru
+                </a>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </Teleport>
+
     </main>
   </div>
 </template>
@@ -151,8 +193,14 @@ const suratJalanList = ref([])
 const loading = ref(true)
 const activeTab = ref('semua')
 const searchQuery = ref('')
+
 const selectedSj = ref([])
 const isSendingToSheets = ref(false)
+const showSuccessModal = ref(false)
+const isCreatingSheet = ref(false)
+const generatedSheetUrl = ref('')
+const copySuccessMessage = ref(false)
+
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz8XzCqaai5DI7SIEHmjrNsPs6hgDXkE__pYABXzJhOKgWEpft58ubExGsBxi18mrs1/exec'
 
 const toggleSelectAll = (e) => {
@@ -163,9 +211,24 @@ const toggleSelectAll = (e) => {
   }
 }
 
+const copyToClipboard = () => {
+  navigator.clipboard.writeText(generatedSheetUrl.value)
+  copySuccessMessage.value = true
+  setTimeout(() => {
+    copySuccessMessage.value = false
+  }, 2000)
+}
+
+const closeModal = () => {
+  showSuccessModal.value = false
+  selectedSj.value = [] // Reset selection only after closing
+}
+
 const sendToGoogleSheets = async () => {
   if (selectedSj.value.length === 0) return
   isSendingToSheets.value = true
+  showSuccessModal.value = true
+  isCreatingSheet.value = true
   
   try {
     const { data: fullData, error } = await supabase
@@ -188,27 +251,32 @@ const sendToGoogleSheets = async () => {
       dibuat_oleh: sj.admin_id
     }))
     
-    // HTTP POST ke Google Sheets (Web App URL)
-    await fetch(GOOGLE_SCRIPT_URL, {
+    // HTTP POST ke Google Sheets
+    const response = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
-      mode: 'no-cors', // Sangat penting untuk melewati pemblokiran CORS dari Google Apps Script
       body: JSON.stringify(payload),
       headers: {
-        'Content-Type': 'text/plain;charset=utf-8'
+        'Content-Type': 'text/plain;charset=utf-8' // Hindari preflight CORS
       }
     })
     
-    // Karena mode: 'no-cors' mengembalikan opaque response, kita tidak bisa mem-parsing response.json()
-    // Kita asumsikan sukses jika fetch tidak melempar Network Error
-    alert('Berhasil mengirim ' + payload.length + ' data ke Google Sheets!')
-    selectedSj.value = []
+    // Karena kita butuh balasan URL, kita parse JSON
+    const result = await response.json()
+    if (result.status === 'success') {
+      generatedSheetUrl.value = result.url
+      isCreatingSheet.value = false
+    } else {
+      throw new Error(result.message || 'Gagal membuat spreadsheet')
+    }
   } catch (err) {
     console.error(err)
-    alert('Terjadi kesalahan saat mengirim ke Google Sheets. Pastikan URL Web App sudah benar.')
+    alert('Terjadi kesalahan saat mengirim ke Google Sheets. Pastikan URL Web App sudah benar dan CORS tidak memblokir.')
+    showSuccessModal.value = false
   } finally {
     isSendingToSheets.value = false
   }
 }
+
 
 
 const tabs = [
