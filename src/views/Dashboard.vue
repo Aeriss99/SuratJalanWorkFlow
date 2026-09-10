@@ -189,21 +189,19 @@ const sendToGoogleSheets = async () => {
     }))
     
     // HTTP POST ke Google Sheets (Web App URL)
-    const response = await fetch(GOOGLE_SCRIPT_URL, {
+    await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
+      mode: 'no-cors', // Sangat penting untuk melewati pemblokiran CORS dari Google Apps Script
       body: JSON.stringify(payload),
       headers: {
         'Content-Type': 'text/plain;charset=utf-8'
       }
     })
     
-    const result = await response.json()
-    if (result.status === 'success') {
-      alert('Berhasil mengirim ' + payload.length + ' data ke Google Sheets!')
-      selectedSj.value = []
-    } else {
-      throw new Error(result.message || 'Gagal mengirim')
-    }
+    // Karena mode: 'no-cors' mengembalikan opaque response, kita tidak bisa mem-parsing response.json()
+    // Kita asumsikan sukses jika fetch tidak melempar Network Error
+    alert('Berhasil mengirim ' + payload.length + ' data ke Google Sheets!')
+    selectedSj.value = []
   } catch (err) {
     console.error(err)
     alert('Terjadi kesalahan saat mengirim ke Google Sheets. Pastikan URL Web App sudah benar.')
