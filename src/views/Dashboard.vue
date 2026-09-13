@@ -469,7 +469,7 @@ const fetchSuratJalan = async () => {
     suratJalanList.value = data
   } catch (err) {
     console.error(err)
-    alert('Gagal memuat data')
+    alert('Gagal memuat data: ' + (err.message || err.toString()))
   } finally {
     loading.value = false
   }
