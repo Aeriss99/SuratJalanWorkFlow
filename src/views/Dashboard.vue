@@ -418,6 +418,13 @@ const filteredList = computed(() => {
     list = list.filter(sj => tab.statuses.includes(sj.status))
   }
 
+  // Filter 30 hari untuk status Selesai jika tidak ada filter manual yang aktif
+  if (activeTab.value === 'selesai' && !searchQuery.value && !customerFilter.value && !dateStart.value && !dateEnd.value) {
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    list = list.filter(sj => new Date(sj.created_at) >= thirtyDaysAgo)
+  }
+
   return list
 })
 
