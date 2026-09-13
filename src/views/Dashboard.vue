@@ -96,8 +96,8 @@
             </router-link>
               <div v-if="sj.status === 'CANCELLED'" class="px-4 pb-4 sm:px-6 sm:pb-5">
                 <div class="pt-4 border-t-2 border-gray-100 flex gap-2">
-                  <button @click="restoreSj(sj)" class="px-4 py-2 bg-blue-50 text-blue-700 font-bold rounded-lg border-2 border-blue-200 hover:bg-blue-100 transition-colors">Pulihkan</button>
-                  <button @click="confirmArchive(sj)" class="px-4 py-2 bg-red-50 text-red-700 font-bold rounded-lg border-2 border-red-200 hover:bg-red-100 transition-colors">Arsipkan</button>
+                  <button @click="restoreSj(sj)" class="px-4 py-2 bg-blue-50 text-blue-700 font-bold rounded-xl border-2 border-blue-200 hover:bg-blue-100 transition-colors">Pulihkan</button>
+                  <button @click="confirmArchive(sj)" class="px-4 py-2 bg-red-50 text-red-700 font-bold rounded-xl border-2 border-red-200 hover:bg-red-100 transition-colors">Arsipkan</button>
                 </div>
               </div>
             </div>
