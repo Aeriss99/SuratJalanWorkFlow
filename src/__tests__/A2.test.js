@@ -48,6 +48,6 @@ describe('A.2 Kategori Semua Aktif', () => {
     
     expect(countSemua).toBe(countDraft + countBerjalan + countSelesai)
     expect(countSemua).toBe(3)
-    expect(countBatal).toBe(2)
+    expect(countBatal).toBe(1) // Hanya CANCELLED yang dihitung, DELETED disembunyikan
   })
 })
