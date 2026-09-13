@@ -357,7 +357,7 @@ const sendToGoogleSheets = async () => {
 
 
 const tabs = [
-  { id: 'semua', name: 'Semua Aktif', statuses: ['DRAFT', 'ASSIGNED', 'ACCEPTED', 'ON_DELIVERY', 'DELIVERED', 'COMPLETED', 'CANCELLED', 'DELETED'],
+  { id: 'semua', name: 'Semua Aktif', statuses: ['DRAFT', 'ASSIGNED', 'ACCEPTED', 'ON_DELIVERY', 'DELIVERED', 'COMPLETED'],
     bg: 'bg-blue-50', text: 'text-blue-900', activeBorder: 'border-blue-500' },
   { id: 'draft', name: 'Draft', statuses: ['DRAFT'],
     bg: 'bg-gray-50', text: 'text-gray-700', activeBorder: 'border-gray-500' },
