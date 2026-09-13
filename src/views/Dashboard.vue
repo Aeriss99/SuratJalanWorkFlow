@@ -409,7 +409,11 @@ const filteredList = computed(() => {
       if (!sj.tanggal_pengiriman) return false;
       const sjDate = new Date(sj.tanggal_pengiriman);
       if (dateStart.value && sjDate < new Date(dateStart.value)) return false;
-      if (dateEnd.value && sjDate > new Date(dateEnd.value)) return false;
+      if (dateEnd.value) {
+        const endBoundary = new Date(dateEnd.value);
+        endBoundary.setHours(23, 59, 59, 999);
+        if (sjDate > endBoundary) return false;
+      }
       return true;
     })
   }
