@@ -15,6 +15,7 @@
             
             <div class="flex-shrink-0 flex items-center font-black text-xl tracking-tight text-blue-600">
               <img src="/logo.png" alt="Logo" class="h-8 w-auto mix-blend-multiply" />
+              <span class="ml-2 font-bold text-lg text-gray-900">SJFlow Palate</span>
             </div>
             
             <!-- Desktop Links -->
@@ -22,9 +23,7 @@
               <router-link to="/" class="border-transparent text-gray-600 hover:text-gray-900 inline-flex items-center px-3 pt-1 border-b-4 text-sm font-bold transition-colors" exact-active-class="!border-gray-900 !text-gray-900">
                 Dashboard
               </router-link>
-              <router-link to="/surat-jalan/create" class="border-transparent text-gray-600 hover:text-gray-900 inline-flex items-center px-3 pt-1 border-b-4 text-sm font-bold transition-colors" active-class="!border-gray-900 !text-gray-900">
-                Buat Baru
-              </router-link>
+              
             </div>
           </div>
           <div class="hidden sm:flex items-center gap-4">
@@ -47,9 +46,7 @@
           <router-link to="/" @click="isMobileMenuOpen = false" class="block px-4 py-3 rounded-xl border-2 border-transparent font-bold text-gray-700 hover:bg-gray-100 active:border-gray-900 transition-all" exact-active-class="bg-blue-50 text-blue-800 border-blue-800">
             Dashboard
           </router-link>
-          <router-link to="/surat-jalan/create" @click="isMobileMenuOpen = false" class="block px-4 py-3 rounded-xl border-2 border-transparent font-bold text-gray-700 hover:bg-gray-100 active:border-gray-900 transition-all" active-class="bg-blue-50 text-blue-800 border-blue-800">
-            Buat Surat Jalan
-          </router-link>
+          
         </div>
         <div class="px-4 border-t-2 border-gray-100 pt-4">
           <button @click="handleLogout" class="w-full text-left px-4 py-3 font-bold text-red-600 rounded-xl hover:bg-red-50 transition-colors">
