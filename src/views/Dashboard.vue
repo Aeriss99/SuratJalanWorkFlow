@@ -30,6 +30,7 @@
             </div>
           </div>
           <input type="text" v-model="searchQuery" placeholder="Cari No. SJ / Customer..." class="block w-full sm:w-48 px-4 py-2.5 rounded-xl border-2 border-gray-900 focus:ring-0 focus:border-blue-600 text-sm font-bold shadow-sm" />
+          <!-- Sengaja tidak disembunyikan di mobile karena link navbar mobile sudah dihapus (lihat Tugas 3) -->
           <button v-if="selectedSj.length > 0" @click="sendToGoogleSheets" :disabled="isSendingToSheets" class="inline-flex justify-center items-center px-4 py-2.5 border-2 border-gray-900 text-sm font-bold rounded-xl shadow-neo text-green-900 bg-green-400 hover:bg-green-500 active:translate-y-0.5 active:shadow-none transition-all whitespace-nowrap disabled:opacity-50">
             {{ isSendingToSheets ? 'Mengirim...' : 'Ke Sheets (' + selectedSj.length + ')' }}
           </button>
