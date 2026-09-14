@@ -162,20 +162,6 @@
         </div>
       </Teleport>
       
-      <!-- Modal Konfirmasi Arsip -->
-      <Teleport to="body">
-        <div v-if="showArchiveModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900 bg-opacity-50 backdrop-blur-sm transition-opacity">
-          <div class="bg-white border-4 border-gray-900 shadow-neo rounded-2xl p-6 w-full max-w-sm animate-in fade-in zoom-in duration-200">
-            <h3 class="text-xl font-black text-gray-900 mb-2">Konfirmasi Arsip</h3>
-            <p class="text-sm font-medium text-gray-600 mb-6">Surat jalan ini akan diarsipkan dan tidak akan tampil lagi di daftar. Lanjutkan?</p>
-            <div class="flex gap-3">
-              <button @click="showArchiveModal = false" class="flex-1 px-4 py-2 border-2 border-gray-900 rounded-xl text-gray-900 font-bold hover:bg-gray-100 transition-colors">Batalkan</button>
-              <button @click="processArchive" class="flex-1 px-4 py-2 border-2 border-gray-900 rounded-xl font-black shadow-neo active:translate-y-0.5 active:shadow-none transition-all bg-red-400 hover:bg-red-500 text-gray-900">Ya, Arsipkan</button>
-            </div>
-          </div>
-        </div>
-      </Teleport>
-      
       <!-- Modal Export Google Sheets -->
       <Teleport to="body">
         <div v-if="showSuccessModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900 bg-opacity-50 backdrop-blur-sm transition-opacity">
@@ -549,6 +535,32 @@ const filteredList = computed(() => {
 const getTabCount = (tabId) => {
   const tab = tabs.find(t => t.id === tabId)
   if (!tab) return 0
-  return baseFilteredList.value.filter(sj => tab.statuses.includes(sj.status)).length
+  
+  let list = suratJalanList.value
+  
+  if (searchQuery.value) {
+    const q = searchQuery.value.toLowerCase()
+    list = list.filter(sj => sj.nomor_dokumen.toLowerCase().includes(q) || (sj.customer && sj.customer.toLowerCase().includes(q)))
+  }
+
+  if (customerFilter.value) {
+    list = list.filter(sj => sj.customer === customerFilter.value)
+  }
+
+  if ((dateStart.value || dateEnd.value) && tabId !== 'draft') {
+    list = list.filter(sj => {
+      if (!sj.tanggal_pengiriman) return false;
+      const sjDate = new Date(sj.tanggal_pengiriman);
+      if (dateStart.value && sjDate < new Date(dateStart.value)) return false;
+      if (dateEnd.value) {
+        const endBoundary = new Date(dateEnd.value);
+        endBoundary.setHours(23, 59, 59, 999);
+        if (sjDate > endBoundary) return false;
+      }
+      return true;
+    })
+  }
+
+  return list.filter(sj => tab.statuses.includes(sj.status)).length
 }
 </script>
