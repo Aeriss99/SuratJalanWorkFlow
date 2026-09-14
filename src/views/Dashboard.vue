@@ -11,9 +11,14 @@
             <option v-for="c in uniqueCustomers" :key="c" :value="c">{{ c }}</option>
           </select>
           <div class="relative w-full sm:w-56">
-            <div @click="showDateRange = !showDateRange" class="cursor-pointer flex items-center justify-between w-full px-4 py-2.5 rounded-xl border-2 border-gray-900 text-sm font-bold shadow-sm bg-white hover:bg-gray-50">
-              <span class="truncate">{{ formattedDateRange }}</span>
+            <div @click="activeTab !== 'draft' && (showDateRange = !showDateRange)" 
+                 :class="[
+                   'flex items-center justify-between w-full px-4 py-2.5 rounded-xl border-2 border-gray-900 text-sm font-bold shadow-sm bg-white',
+                   activeTab === 'draft' ? 'opacity-50 cursor-not-allowed bg-gray-100' : 'cursor-pointer hover:bg-gray-50'
+                 ]">
+              <span class="truncate">{{ activeTab === 'draft' ? 'Tidak berlaku (Draft)' : formattedDateRange }}</span>
             </div>
+            <p v-if="activeTab === 'draft'" class="absolute -bottom-5 left-0 text-[10px] text-gray-500">Filter tanggal tidak berlaku untuk draft</p>
             <div v-if="showDateRange" class="absolute z-50 mt-2 p-4 bg-white border-2 border-gray-900 rounded-xl shadow-neo w-64 right-0 sm:left-0">
               <div class="mb-3">
                 <label class="block text-xs font-bold text-gray-700 mb-1">Mulai Tanggal</label>
@@ -41,16 +46,34 @@
       </div>
 
       <!-- Filter Cards -->
-      <div class="px-4 sm:px-0 mb-6 grid grid-cols-2 sm:grid-cols-5 gap-4">
-        <div v-for="tab in tabs" :key="tab.id" 
-             @click="activeTab = tab.id"
-             :class="[
-               'cursor-pointer rounded-2xl p-4 transition-all hover:translate-y-[-2px] border-2',
-               tab.bg,
-               activeTab === tab.id ? 'shadow-neo ' + tab.activeBorder : 'border-transparent opacity-80 hover:opacity-100 hover:border-gray-300'
-             ]">
-          <p class="text-xs font-bold uppercase" :class="tab.text">{{ tab.name }}</p>
-          <p class="text-2xl font-black" :class="tab.text">{{ getTabCount(tab.id) }}</p>
+      <div class="px-4 sm:px-0 mb-6">
+        <div class="sm:hidden mb-4">
+          <label for="tabs" class="sr-only">Pilih Kategori</label>
+          <div class="relative">
+            <select id="tabs" v-model="activeTab" class="block w-full rounded-xl border-2 border-gray-900 py-3 pl-4 pr-10 text-base font-bold focus:border-blue-500 focus:outline-none sm:text-sm bg-white shadow-neo appearance-none">
+              <option v-for="tab in tabs" :key="tab.id" :value="tab.id">{{ tab.name }} ({{ getTabCount(tab.id) }})</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-900">
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"></path></svg>
+            </div>
+          </div>
+        </div>
+        <div class="hidden sm:grid grid-cols-2 sm:grid-cols-5 gap-4">
+          <div v-for="tab in tabs" :key="tab.id" 
+               role="button"
+               tabindex="0"
+               @click="activeTab = tab.id"
+               @keydown.enter="activeTab = tab.id"
+               @keydown.space.prevent="activeTab = tab.id"
+               :aria-pressed="activeTab === tab.id"
+               :class="[
+                 'cursor-pointer rounded-2xl p-4 transition-all hover:translate-y-[-2px] border-2 focus:outline-none focus:ring-2 focus:ring-blue-500',
+                 tab.bg,
+                 activeTab === tab.id ? 'shadow-neo ' + tab.activeBorder : 'border-transparent opacity-80 hover:opacity-100 hover:border-gray-300'
+               ]">
+            <p class="text-xs font-bold uppercase" :class="tab.text">{{ tab.name }}</p>
+            <p class="text-2xl font-black" :class="tab.text">{{ getTabCount(tab.id) }}</p>
+          </div>
         </div>
       </div>
 
@@ -469,14 +492,13 @@ const fetchSuratJalan = async () => {
     suratJalanList.value = data
   } catch (err) {
     console.error(err)
-    alert('Gagal memuat data: ' + (err.message || err.toString()))
+    alert('Gagal memuat data')
   } finally {
     loading.value = false
   }
 }
 
-const filteredList = computed(() => {
-  const tab = tabs.find(t => t.id === activeTab.value)
+const baseFilteredList = computed(() => {
   let list = suratJalanList.value
   
   if (searchQuery.value) {
@@ -488,7 +510,8 @@ const filteredList = computed(() => {
     list = list.filter(sj => sj.customer === customerFilter.value)
   }
 
-  if (dateStart.value || dateEnd.value) {
+  // A.10: ignore date filter if activeTab is 'draft'
+  if ((dateStart.value || dateEnd.value) && activeTab.value !== 'draft') {
     list = list.filter(sj => {
       if (!sj.tanggal_pengiriman) return false;
       const sjDate = new Date(sj.tanggal_pengiriman);
@@ -501,6 +524,13 @@ const filteredList = computed(() => {
       return true;
     })
   }
+
+  return list
+})
+
+const filteredList = computed(() => {
+  const tab = tabs.find(t => t.id === activeTab.value)
+  let list = baseFilteredList.value
   
   if (tab) {
     list = list.filter(sj => tab.statuses.includes(sj.status))
@@ -519,6 +549,6 @@ const filteredList = computed(() => {
 const getTabCount = (tabId) => {
   const tab = tabs.find(t => t.id === tabId)
   if (!tab) return 0
-  return suratJalanList.value.filter(sj => tab.statuses.includes(sj.status)).length
+  return baseFilteredList.value.filter(sj => tab.statuses.includes(sj.status)).length
 }
 </script>
