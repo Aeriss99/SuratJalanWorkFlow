@@ -5,41 +5,50 @@
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div class="px-4 py-4 sm:px-0 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-2">
         <h1 class="text-2xl font-black text-gray-900 tracking-tight">Daftar Surat Jalan</h1>
-        <div class="flex gap-2 w-full sm:w-auto">
-          <input type="text" v-model="searchQuery" placeholder="Cari No. SJ / Customer..." class="block w-full sm:w-64 px-4 py-2.5 rounded-xl border-2 border-gray-900 focus:ring-0 focus:border-blue-600 text-sm font-bold shadow-sm" />
-          <button v-if="selectedSj.length > 0" @click="sendToGoogleSheets" :disabled="isSendingToSheets" class="hidden sm:inline-flex items-center px-4 py-2.5 border-2 border-gray-900 text-sm font-bold rounded-xl shadow-neo text-green-900 bg-green-400 hover:bg-green-500 active:translate-y-0.5 active:shadow-none transition-all whitespace-nowrap disabled:opacity-50">
-            {{ isSendingToSheets ? 'Mengirim...' : 'Kirim ke Google Sheets (' + selectedSj.length + ')' }}
+        <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto mt-4 sm:mt-0">
+          <select v-model="customerFilter" class="block w-full sm:w-48 px-4 py-2.5 rounded-xl border-2 border-gray-900 text-sm font-bold shadow-sm bg-white focus:ring-0 focus:border-blue-600 appearance-none">
+            <option value="">Semua Customer</option>
+            <option v-for="c in uniqueCustomers" :key="c" :value="c">{{ c }}</option>
+          </select>
+          <div class="relative w-full sm:w-56">
+            <div @click="activeTab !== 'draft' && (showDateRange = !showDateRange)" 
+                 :class="[
+                   'flex items-center justify-between w-full px-4 py-2.5 rounded-xl border-2 border-gray-900 text-sm font-bold shadow-sm bg-white',
+                   activeTab === 'draft' ? 'opacity-50 cursor-not-allowed bg-gray-100' : 'cursor-pointer hover:bg-gray-50'
+                 ]">
+              <span class="truncate">{{ activeTab === 'draft' ? 'Tidak berlaku (Draft)' : formattedDateRange }}</span>
+            </div>
+            <p v-if="activeTab === 'draft'" class="absolute -bottom-5 left-0 text-[10px] text-gray-500">Filter tanggal tidak berlaku untuk draft</p>
+            <div v-if="showDateRange" class="absolute z-50 mt-2 p-4 bg-white border-2 border-gray-900 rounded-xl shadow-neo w-64 right-0 sm:left-0">
+              <div class="mb-3">
+                <label class="block text-xs font-bold text-gray-700 mb-1">Mulai Tanggal</label>
+                <input type="date" v-model="dateStart" class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm" />
+              </div>
+              <div class="mb-4">
+                <label class="block text-xs font-bold text-gray-700 mb-1">Sampai Tanggal</label>
+                <input type="date" v-model="dateEnd" class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm" />
+              </div>
+              <div class="flex justify-end gap-2">
+                <button @click="resetDateRange" class="px-3 py-1.5 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-lg">Reset</button>
+                <button @click="showDateRange = false" class="px-3 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg">Terapkan</button>
+              </div>
+            </div>
+          </div>
+          <input type="text" v-model="searchQuery" placeholder="Cari No. SJ / Customer..." class="block w-full sm:w-48 px-4 py-2.5 rounded-xl border-2 border-gray-900 focus:ring-0 focus:border-blue-600 text-sm font-bold shadow-sm" />
+          <!-- Sengaja tidak disembunyikan di mobile karena link navbar mobile sudah dihapus (lihat Tugas 3) -->
+          <button v-if="selectedSj.length > 0" @click="sendToGoogleSheets" :disabled="isSendingToSheets" class="inline-flex justify-center items-center px-4 py-2.5 border-2 border-gray-900 text-sm font-bold rounded-xl shadow-neo text-green-900 bg-green-400 hover:bg-green-500 active:translate-y-0.5 active:shadow-none transition-all whitespace-nowrap disabled:opacity-50">
+            {{ isSendingToSheets ? 'Mengirim...' : 'Ke Sheets (' + selectedSj.length + ')' }}
           </button>
-          <router-link to="/surat-jalan/create" class="hidden sm:inline-flex items-center px-4 py-2.5 border-2 border-gray-900 text-sm font-bold rounded-xl shadow-neo text-gray-900 bg-blue-400 hover:bg-blue-500 active:translate-y-0.5 active:shadow-none transition-all whitespace-nowrap">
+          <router-link to="/surat-jalan/create" class="inline-flex justify-center items-center px-4 py-2.5 border-2 border-gray-900 text-sm font-bold rounded-xl shadow-neo text-gray-900 bg-blue-400 hover:bg-blue-500 active:translate-y-0.5 active:shadow-none transition-all whitespace-nowrap">
             Buat Baru
           </router-link>
         </div>
       </div>
 
-      <!-- Quick Stats -->
-      <div class="px-4 sm:px-0 mb-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div class="bg-gray-100 border-2 border-gray-300 rounded-2xl p-4 shadow-sm">
-          <p class="text-xs font-bold text-gray-600 uppercase">Semua Aktif</p>
-          <p class="text-2xl font-black text-gray-900">{{ getTabCount('semua') }}</p>
-        </div>
-        <div class="bg-orange-50 border-2 border-orange-200 rounded-2xl p-4 shadow-sm">
-          <p class="text-xs font-bold text-orange-800 uppercase">Draft & Batal</p>
-          <p class="text-2xl font-black text-orange-900">{{ getTabCount('draft') }}</p>
-        </div>
-        <div class="bg-purple-50 border-2 border-purple-200 rounded-2xl p-4 shadow-sm">
-          <p class="text-xs font-bold text-purple-800 uppercase">Sedang Berjalan</p>
-          <p class="text-2xl font-black text-purple-900">{{ getTabCount('berjalan') }}</p>
-        </div>
-        <div class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 shadow-sm">
-          <p class="text-xs font-bold text-blue-800 uppercase">Selesai</p>
-          <p class="text-2xl font-black text-blue-900">{{ getTabCount('selesai') }}</p>
-        </div>
-      </div>
-
-      <!-- Tabs Navigasi Status -->
-      <div class="px-4 sm:px-0 mt-2 mb-6">
-        <div class="sm:hidden">
-          <label for="tabs" class="sr-only">Pilih Tab</label>
+      <!-- Filter Cards -->
+      <div class="px-4 sm:px-0 mb-6">
+        <div class="sm:hidden mb-4">
+          <label for="tabs" class="sr-only">Pilih Kategori</label>
           <div class="relative">
             <select id="tabs" v-model="activeTab" class="block w-full rounded-xl border-2 border-gray-900 py-3 pl-4 pr-10 text-base font-bold focus:border-blue-500 focus:outline-none sm:text-sm bg-white shadow-neo appearance-none">
               <option v-for="tab in tabs" :key="tab.id" :value="tab.id">{{ tab.name }} ({{ getTabCount(tab.id) }})</option>
@@ -49,30 +58,22 @@
             </div>
           </div>
         </div>
-        <div class="hidden sm:block">
-          <nav class="flex space-x-2 overflow-x-auto pb-2" aria-label="Tabs">
-            <button
-              v-for="tab in tabs"
-              :key="tab.id"
-              @click="activeTab = tab.id"
-              :class="[
-                activeTab === tab.id
-                  ? 'bg-gray-900 text-white shadow-neo translate-y-[-2px]'
-                  : 'bg-white text-gray-600 border-2 border-gray-900 hover:bg-gray-50',
-                'px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center whitespace-nowrap'
-              ]"
-            >
-              {{ tab.name }}
-              <span 
-                :class="[
-                  activeTab === tab.id ? 'bg-white text-gray-900' : 'bg-gray-100 text-gray-900 border border-gray-900',
-                  'ml-2 rounded-full py-0.5 px-2.5 text-xs font-bold transition-colors'
-                ]"
-              >
-                {{ getTabCount(tab.id) }}
-              </span>
-            </button>
-          </nav>
+        <div class="hidden sm:grid grid-cols-2 sm:grid-cols-5 gap-4">
+          <div v-for="tab in tabs" :key="tab.id" 
+               role="button"
+               tabindex="0"
+               @click="activeTab = tab.id"
+               @keydown.enter="activeTab = tab.id"
+               @keydown.space.prevent="activeTab = tab.id"
+               :aria-pressed="activeTab === tab.id"
+               :class="[
+                 'cursor-pointer rounded-2xl p-4 transition-all hover:translate-y-[-2px] border-2 focus:outline-none focus:ring-2 focus:ring-blue-500',
+                 tab.bg,
+                 activeTab === tab.id ? 'shadow-neo ' + tab.activeBorder : 'border-transparent opacity-80 hover:opacity-100 hover:border-gray-300'
+               ]">
+            <p class="text-xs font-bold uppercase" :class="tab.text">{{ tab.name }}</p>
+            <p class="text-2xl font-black" :class="tab.text">{{ getTabCount(tab.id) }}</p>
+          </div>
         </div>
       </div>
 
@@ -116,6 +117,12 @@
                 </div>
               </div>
             </router-link>
+              <div v-if="sj.status === 'CANCELLED'" class="px-4 pb-4 sm:px-6 sm:pb-5">
+                <div class="pt-4 border-t-2 border-gray-100 flex gap-2">
+                  <button @click="restoreSj(sj)" class="px-4 py-2 bg-blue-50 text-blue-700 font-bold rounded-xl border-2 border-blue-200 hover:bg-blue-100 transition-colors">Pulihkan</button>
+                  <button @click="confirmArchive(sj)" class="px-4 py-2 bg-red-50 text-red-700 font-bold rounded-xl border-2 border-red-200 hover:bg-red-100 transition-colors">Arsipkan</button>
+                </div>
+              </div>
             </div>
           </div>
           
@@ -123,10 +130,13 @@
             <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
-            <h3 class="mt-2 text-base font-bold text-gray-900">Tidak ada data</h3>
-            <p class="mt-1 text-sm font-medium text-gray-500">
-              Belum ada Surat Jalan di kategori ini.
+            <h3 class="mt-2 text-base font-bold text-gray-900">{{ getEmptyState().title }}</h3>
+            <p class="mt-1 text-sm font-medium text-gray-500 mb-4">
+              {{ getEmptyState().subtitle }}
             </p>
+            <router-link v-if="getEmptyState().showCTA" to="/surat-jalan/create" class="inline-flex items-center px-4 py-2 border-2 border-gray-900 text-sm font-bold rounded-xl shadow-neo text-gray-900 bg-blue-400 hover:bg-blue-500 active:translate-y-0.5 active:shadow-none transition-all">
+              + Buat Surat Jalan Pertama
+            </router-link>
           </div>
         </div>
 
@@ -138,6 +148,20 @@
         </div>
       </div>
     
+      <!-- Modal Konfirmasi Arsip -->
+      <Teleport to="body">
+        <div v-if="showArchiveModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900 bg-opacity-50 backdrop-blur-sm transition-opacity">
+          <div class="bg-white border-4 border-gray-900 shadow-neo rounded-2xl p-6 w-full max-w-sm animate-in fade-in zoom-in duration-200">
+            <h3 class="text-xl font-black text-gray-900 mb-2">Konfirmasi Arsip</h3>
+            <p class="text-sm font-medium text-gray-600 mb-6">Surat jalan ini akan diarsipkan dan tidak akan tampil lagi di daftar. Lanjutkan?</p>
+            <div class="flex gap-3">
+              <button @click="showArchiveModal = false" class="flex-1 px-4 py-2 border-2 border-gray-900 rounded-xl text-gray-900 font-bold hover:bg-gray-100 transition-colors">Batalkan</button>
+              <button @click="processArchive" class="flex-1 px-4 py-2 border-2 border-gray-900 rounded-xl font-black shadow-neo active:translate-y-0.5 active:shadow-none transition-all bg-red-400 hover:bg-red-500 text-gray-900">Ya, Arsipkan</button>
+            </div>
+          </div>
+        </div>
+      </Teleport>
+      
       <!-- Modal Export Google Sheets -->
       <Teleport to="body">
         <div v-if="showSuccessModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900 bg-opacity-50 backdrop-blur-sm transition-opacity">
@@ -179,6 +203,33 @@
         </div>
       </Teleport>
 
+    
+      <!-- Aktivitas Terbaru -->
+      <div class="px-4 sm:px-0 mt-12 mb-6">
+        <h2 class="text-xl font-black text-gray-900 mb-4">Aktivitas Terbaru</h2>
+        <div v-if="recentList.length > 0" class="space-y-3">
+          <router-link v-for="sj in recentList" :key="'recent-'+sj.id" :to="'/surat-jalan/'+sj.id" class="block bg-white p-4 rounded-xl border-2 border-gray-200 hover:border-gray-900 hover:shadow-neo transition-all">
+            <div class="flex justify-between items-center">
+              <div>
+                <p class="font-bold text-gray-900">{{ sj.nomor_dokumen }}</p>
+                <p class="text-sm text-gray-600">{{ sj.customer }}</p>
+              </div>
+              <span class="px-3 py-1 text-xs font-bold rounded-full border-2" :class="statusColor(sj.status)">
+                {{ getStatusLabel(sj.status) }}
+              </span>
+            </div>
+          </router-link>
+        </div>
+        <div v-else class="text-center py-6 bg-gray-100 rounded-xl border-2 border-dashed border-gray-300">
+          <p class="text-sm font-medium text-gray-500">Belum ada aktivitas</p>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <footer class="mt-12 py-6 text-center text-sm font-medium text-gray-500 border-t-2 border-gray-200">
+        <p>&copy; 2026 SJFlow Palate. Semua hak dilindungi.</p>
+      </footer>
+
     </main>
   </div>
 </template>
@@ -193,6 +244,59 @@ const suratJalanList = ref([])
 const loading = ref(true)
 const activeTab = ref('semua')
 const searchQuery = ref('')
+const customerFilter = ref('')
+const dateStart = ref('')
+const dateEnd = ref('')
+const showDateRange = ref(false)
+
+const resetDateRange = () => {
+  dateStart.value = ''
+  dateEnd.value = ''
+  showDateRange.value = false
+}
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return ''
+  const [y, m, d] = dateStr.split('-')
+  return `${d}/${m}/${y}`
+}
+
+const formattedDateRange = computed(() => {
+  if (dateStart.value && dateEnd.value) {
+    return `${formatDate(dateStart.value)} - ${formatDate(dateEnd.value)}`
+  }
+  if (dateStart.value) {
+    return `${formatDate(dateStart.value)} - Seterusnya`
+  }
+  if (dateEnd.value) {
+    return `Awal - ${formatDate(dateEnd.value)}`
+  }
+  return 'Pilih Tanggal'
+})
+
+const uniqueCustomers = computed(() => {
+  const customers = suratJalanList.value.map(sj => sj.customer).filter(Boolean)
+  return [...new Set(customers)].sort()
+})
+
+const getEmptyState = () => {
+  if (searchQuery.value || customerFilter.value || dateStart.value || dateEnd.value) {
+    return { title: 'Tidak ada data', subtitle: 'Tidak ada hasil yang cocok dengan pencarian dan filter Anda.', showCTA: false }
+  }
+  switch(activeTab.value) {
+    case 'semua': return { title: 'Belum ada Surat Jalan', subtitle: 'Mulai buat surat jalan pertamamu.', showCTA: true }
+    case 'draft': return { title: 'Tidak ada draft', subtitle: 'Surat jalan yang belum difinalisasi akan muncul di sini.', showCTA: false }
+    case 'batal': return { title: 'Tidak ada surat jalan yang dibatalkan', subtitle: 'Riwayat pembatalan akan muncul di sini.', showCTA: false }
+    case 'berjalan': return { title: 'Tidak ada pengiriman yang sedang berjalan', subtitle: 'Surat jalan yang sedang dalam proses pengiriman akan muncul di sini.', showCTA: false }
+    case 'selesai': return { title: 'Belum ada surat jalan yang selesai', subtitle: 'Riwayat pengiriman yang sudah selesai akan muncul di sini.', showCTA: false }
+    default: return { title: 'Tidak ada data', subtitle: 'Belum ada Surat Jalan di kategori ini.', showCTA: false }
+  }
+}
+
+const recentList = computed(() => {
+  return [...suratJalanList.value].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5)
+})
+
 
 const selectedSj = ref([])
 const isSendingToSheets = ref(false)
@@ -200,6 +304,55 @@ const showSuccessModal = ref(false)
 const isCreatingSheet = ref(false)
 const generatedSheetUrl = ref('')
 const copySuccessMessage = ref(false)
+
+const sjToArchive = ref(null)
+const showArchiveModal = ref(false)
+
+const restoreSj = async (sj) => {
+  try {
+    const newStatus = sj.previous_status || 'DRAFT'
+    const { error } = await supabase
+      .from('surat_jalan')
+      .update({ status: newStatus, previous_status: null })
+      .eq('id', sj.id)
+      
+    if (error) throw error
+    
+    // Update local state
+    sj.status = newStatus
+    sj.previous_status = null
+    alert('Berhasil dipulihkan ke status ' + newStatus)
+  } catch(e) {
+    alert('Gagal memulihkan: ' + e.message)
+  }
+}
+
+const confirmArchive = (sj) => {
+  sjToArchive.value = sj
+  showArchiveModal.value = true
+}
+
+const processArchive = async () => {
+  if (!sjToArchive.value) return
+  try {
+    const { error } = await supabase
+      .from('surat_jalan')
+      .update({ status: 'DELETED' })
+      .eq('id', sjToArchive.value.id)
+      
+    if (error) throw error
+    
+    // Update local state
+    sjToArchive.value.status = 'DELETED'
+    showArchiveModal.value = false
+    sjToArchive.value = null
+  } catch(e) {
+    alert('Gagal mengarsipkan: ' + e.message)
+  }
+}
+
+
+
 
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz8XzCqaai5DI7SIEHmjrNsPs6hgDXkE__pYABXzJhOKgWEpft58ubExGsBxi18mrs1/exec'
 
@@ -297,10 +450,16 @@ const sendToGoogleSheets = async () => {
 
 
 const tabs = [
-  { id: 'semua', name: 'Semua Aktif', statuses: ['DRAFT', 'ASSIGNED', 'ACCEPTED', 'ON_DELIVERY', 'DELIVERED', 'COMPLETED'] },
-  { id: 'draft', name: 'Draft & Batal', statuses: ['DRAFT', 'CANCELLED', 'DELETED'] },
-  { id: 'berjalan', name: 'Sedang Berjalan', statuses: ['ASSIGNED', 'ACCEPTED', 'ON_DELIVERY'] },
-  { id: 'selesai', name: 'Selesai', statuses: ['DELIVERED', 'COMPLETED'] }
+  { id: 'semua', name: 'Semua Aktif', statuses: ['DRAFT', 'ASSIGNED', 'ACCEPTED', 'ON_DELIVERY', 'DELIVERED', 'COMPLETED'],
+    bg: 'bg-blue-50', text: 'text-blue-900', activeBorder: 'border-blue-500' },
+  { id: 'draft', name: 'Draft', statuses: ['DRAFT'],
+    bg: 'bg-gray-50', text: 'text-gray-700', activeBorder: 'border-gray-500' },
+  { id: 'batal', name: 'Batal', statuses: ['CANCELLED'],
+    bg: 'bg-red-50', text: 'text-red-900', activeBorder: 'border-red-500' },
+  { id: 'berjalan', name: 'Sedang Berjalan', statuses: ['ASSIGNED', 'ACCEPTED', 'ON_DELIVERY'],
+    bg: 'bg-orange-50', text: 'text-orange-900', activeBorder: 'border-orange-500' },
+  { id: 'selesai', name: 'Selesai', statuses: ['DELIVERED', 'COMPLETED'],
+    bg: 'bg-green-50', text: 'text-green-900', activeBorder: 'border-green-500' }
 ]
 
 onMounted(() => {
@@ -311,7 +470,7 @@ const fetchSuratJalan = async () => {
   try {
     const { data, error } = await supabase
       .from('surat_jalan')
-      .select('id, nomor_dokumen, status, customer, tanggal_pengiriman, supir_id, created_at')
+      .select('id, nomor_dokumen, status, previous_status, customer, tanggal_pengiriman, supir_id, created_at')
       .limit(300)
       .order('created_at', { ascending: false })
       
@@ -325,32 +484,83 @@ const fetchSuratJalan = async () => {
   }
 }
 
-const filteredList = computed(() => {
-  const tab = tabs.find(t => t.id === activeTab.value)
+const baseFilteredList = computed(() => {
   let list = suratJalanList.value
   
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase()
-    list = list.filter(sj => sj.nomor_dokumen.toLowerCase().includes(q) || sj.customer.toLowerCase().includes(q))
+    list = list.filter(sj => sj.nomor_dokumen.toLowerCase().includes(q) || (sj.customer && sj.customer.toLowerCase().includes(q)))
   }
+
+  if (customerFilter.value) {
+    list = list.filter(sj => sj.customer === customerFilter.value)
+  }
+
+  // A.10: ignore date filter if activeTab is 'draft'
+  if ((dateStart.value || dateEnd.value) && activeTab.value !== 'draft') {
+    list = list.filter(sj => {
+      if (!sj.tanggal_pengiriman) return false;
+      const sjDate = new Date(sj.tanggal_pengiriman);
+      if (dateStart.value && sjDate < new Date(dateStart.value)) return false;
+      if (dateEnd.value) {
+        const endBoundary = new Date(dateEnd.value);
+        endBoundary.setHours(23, 59, 59, 999);
+        if (sjDate > endBoundary) return false;
+      }
+      return true;
+    })
+  }
+
+  return list
+})
+
+const filteredList = computed(() => {
+  const tab = tabs.find(t => t.id === activeTab.value)
+  let list = baseFilteredList.value
   
   if (tab) {
     list = list.filter(sj => tab.statuses.includes(sj.status))
   }
 
-  // Filter 30 hari untuk status Selesai jika tidak ada pencarian
-  if (activeTab.value === 'selesai' && !searchQuery.value) {
+  // Filter 30 hari untuk status Selesai jika tidak ada filter manual yang aktif
+  if (activeTab.value === 'selesai' && !searchQuery.value && !customerFilter.value && !dateStart.value && !dateEnd.value) {
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
     list = list.filter(sj => new Date(sj.created_at) >= thirtyDaysAgo)
   }
-  
+
   return list
 })
 
 const getTabCount = (tabId) => {
   const tab = tabs.find(t => t.id === tabId)
   if (!tab) return 0
-  return suratJalanList.value.filter(sj => tab.statuses.includes(sj.status)).length
+  
+  let list = suratJalanList.value
+  
+  if (searchQuery.value) {
+    const q = searchQuery.value.toLowerCase()
+    list = list.filter(sj => sj.nomor_dokumen.toLowerCase().includes(q) || (sj.customer && sj.customer.toLowerCase().includes(q)))
+  }
+
+  if (customerFilter.value) {
+    list = list.filter(sj => sj.customer === customerFilter.value)
+  }
+
+  if ((dateStart.value || dateEnd.value) && tabId !== 'draft') {
+    list = list.filter(sj => {
+      if (!sj.tanggal_pengiriman) return false;
+      const sjDate = new Date(sj.tanggal_pengiriman);
+      if (dateStart.value && sjDate < new Date(dateStart.value)) return false;
+      if (dateEnd.value) {
+        const endBoundary = new Date(dateEnd.value);
+        endBoundary.setHours(23, 59, 59, 999);
+        if (sjDate > endBoundary) return false;
+      }
+      return true;
+    })
+  }
+
+  return list.filter(sj => tab.statuses.includes(sj.status)).length
 }
 </script>

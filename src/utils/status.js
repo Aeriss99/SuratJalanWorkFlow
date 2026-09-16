@@ -15,14 +15,14 @@ export const getStatusLabel = (status) => {
 
 export const statusColor = (status) => {
   const colors = {
-    'DRAFT': 'bg-gray-100 text-gray-800 border-gray-900',
-    'ASSIGNED': 'bg-orange-100 text-orange-900 border-orange-900',
-    'ACCEPTED': 'bg-indigo-100 text-indigo-900 border-indigo-900',
-    'ON_DELIVERY': 'bg-purple-100 text-purple-900 border-purple-900',
-    'DELIVERED': 'bg-teal-100 text-teal-900 border-teal-900',
-    'COMPLETED': 'bg-blue-100 text-blue-900 border-blue-900',
-    'CANCELLED': 'bg-red-100 text-red-900 border-red-900',
-    'DELETED': 'bg-gray-300 text-gray-900 border-gray-900 line-through'
+    'DRAFT': 'bg-gray-100 text-gray-700 border-gray-400',
+    'ASSIGNED': 'bg-orange-100 text-orange-800 border-orange-400',
+    'ACCEPTED': 'bg-orange-100 text-orange-800 border-orange-400',
+    'ON_DELIVERY': 'bg-orange-100 text-orange-800 border-orange-400',
+    'DELIVERED': 'bg-green-100 text-green-800 border-green-400',
+    'COMPLETED': 'bg-green-100 text-green-800 border-green-400',
+    'CANCELLED': 'bg-red-100 text-red-800 border-red-400',
+    'DELETED': 'bg-red-100 text-red-800 border-red-400 line-through'
   }
-  return colors[status] || 'bg-gray-100 text-gray-800 border-gray-900'
+  return colors[status] || 'bg-gray-100 text-gray-700 border-gray-400'
 }

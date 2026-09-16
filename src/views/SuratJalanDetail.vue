@@ -516,9 +516,13 @@ const changeStatusSafe = (newStatus, actionLabel, promptText = null) => {
 const changeStatus = async (newStatus, actionLabel = 'STATUS_CHANGED', reason = null) => {
   try {
     submitting.value = true
+    const updateData = { status: newStatus }
+    if (newStatus === 'CANCELLED') {
+      updateData.previous_status = sj.value.status
+    }
     const { error } = await supabase
       .from('surat_jalan')
-      .update({ status: newStatus,   })
+      .update(updateData)
       .eq('id', sj.value.id)
       
     if (error) throw error

@@ -3,10 +3,10 @@
     <div class="max-w-[400px] w-full">
       <!-- Logo & Header -->
       <div class="text-center mb-8 animate-fade-in-up">
-        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight flex justify-center mb-4">
+        <h1 class="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight flex justify-center mb-4">
           <img src="/logo.png" alt="Logo" class="h-20 w-auto mix-blend-multiply" />
         </h1>
-        <p class="mt-2 text-sm text-gray-500">
+        <p class="mt-2 text-sm font-bold text-gray-500">
           Sistem Digital Surat Jalan & Serah Terima
         </p>
       </div>
@@ -14,8 +14,8 @@
       <!-- Login Card -->
       <div class="bg-white rounded-2xl shadow-neo border-2 border-gray-900 p-6 sm:p-8 animate-fade-in-up delay-100">
         <div class="mb-6">
-          <h2 class="text-lg font-semibold text-gray-900">Selamat Datang</h2>
-          <p class="text-sm text-gray-500 mt-1 leading-relaxed">Gunakan akun Google Anda untuk masuk ke sistem.</p>
+          <h2 class="text-xl font-black text-gray-900">Selamat Datang</h2>
+          <p class="text-sm font-medium text-gray-500 mt-1 leading-relaxed">Gunakan akun Google Anda untuk masuk ke sistem.</p>
         </div>
 
         <button
@@ -36,7 +36,7 @@
       </div>
 
       <!-- Footer Info -->
-      <p class="text-center text-xs text-gray-400 mt-8 leading-relaxed">
+      <p class="text-center text-xs font-bold text-gray-500 mt-8 leading-relaxed">
         Hanya untuk pengguna internal perusahaan.<br>
         Akses baru akan memerlukan persetujuan.
       </p>
