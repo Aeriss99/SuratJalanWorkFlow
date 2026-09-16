@@ -23,3 +23,15 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# Temporary scripts and notes
+*_temp.py
+*_temp.js
+*_temp.cjs
+*.sql
+*.cjs
+fix_*.js
+test_*.js
+patch_*.cjs
+*.txt
+
